@@ -1,0 +1,35 @@
+{
+  "name": "台灣衝浪助手",
+  "short_name": "衝浪助手",
+  "description": "查浪況、記紀錄、問問題，隨時隨地掌握台灣衝浪資訊",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0ea5e9",
+  "lang": "zh-Hant",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "weather"],
+  "shortcuts": [
+    {
+      "name": "新增衝浪紀錄",
+      "short_name": "紀錄",
+      "description": "快速新增今天衝浪紀錄",
+      "url": "/#log-form"
+    },
+    {
+      "name": "問問題",
+      "short_name": "問浪況",
+      "description": "詢問今天浪況",
+      "url": "/"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#0ea5e9"/>
+  <!-- Wave shape -->
+  <path d="M0 300 Q80 240 160 280 Q240 320 320 260 Q400 200 480 240 L480 512 L0 512 Z" fill="#0369a1" opacity="0.6"/>
+  <path d="M0 340 Q80 280 160 320 Q240 360 320 300 Q400 240 480 280 L480 512 L0 512 Z" fill="#075985"/>
+  <!-- Surfer emoji-style figure -->
+  <text x="256" y="280" font-size="200" text-anchor="middle" dominant-baseline="middle">🏄</text>
+</svg>

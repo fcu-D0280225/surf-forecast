@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>登入 — 台灣衝浪助手</title>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0ea5e9">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="衝浪助手">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="logo">🏄</div>
+      <h1>台灣衝浪助手</h1>
+      <p class="hint">請登入後繼續</p>
+
+      <form id="login-form">
+        <div class="field">
+          <label for="username">帳號</label>
+          <input id="username" name="username" type="text"
+                 autocomplete="username" placeholder="your_name" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">密碼</label>
+          <input id="password" name="password" type="password"
+                 autocomplete="current-password" placeholder="••••••••" required>
+        </div>
+        <p id="error-msg" class="error" hidden></p>
+        <button type="submit" id="submit-btn">登入</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      const err = document.getElementById('error-msg');
+      btn.disabled = true;
+      btn.textContent = '登入中…';
+      err.hidden = true;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('username').value.trim(),
+            password: document.getElementById('password').value,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          window.location.href = '/';
+        } else {
+          err.textContent = data.error || '登入失敗';
+          err.hidden = false;
+        }
+      } catch {
+        err.textContent = '連線錯誤，請稍後再試';
+        err.hidden = false;
+      }
+
+      btn.disabled = false;
+      btn.textContent = '登入';
+    });
+  </script>
+</body>
+</html>

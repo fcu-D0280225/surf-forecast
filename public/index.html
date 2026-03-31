@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>🏄 台灣衝浪助手</title>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0ea5e9">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="衝浪助手">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <header>
+      <div class="header-main">
+        <div>
+          <h1>🏄 台灣衝浪助手</h1>
+          <p class="subtitle">查浪況・記紀錄・預測好壞</p>
+        </div>
+        <div class="user-info">
+          <span id="display-name">…</span>
+          <button onclick="doLogout()" class="logout-btn">登出</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 快速按鈕 -->
+    <div class="quick-actions">
+      <button class="quick-btn" data-msg="墾丁現在浪況如何？">🌊 墾丁現況</button>
+      <button class="quick-btn" data-msg="台東今天適合衝浪嗎？">🤙 台東今天</button>
+      <button class="quick-btn" data-msg="幫我預測明天松柏港的浪況">🔮 明天預測</button>
+      <button class="quick-btn" data-msg="顯示最近的衝浪紀錄">📋 最近紀錄</button>
+    </div>
+
+    <!-- 對話區 -->
+    <div class="chat-container">
+      <div class="messages" id="messages">
+        <div class="message assistant">
+          <div class="bubble">
+            你好！我是你的衝浪助手 🤙<br>
+            可以問我浪況預報、記錄今天衝浪心得，或預測未來幾天適不適合出發。<br><br>
+            例如：「2026-03-28 我在大溪衝浪，浪況不好，幫我記錄」
+          </div>
+        </div>
+      </div>
+
+      <!-- 輸入區 -->
+      <div class="input-area">
+        <textarea
+          id="input"
+          placeholder="輸入問題或指令… 例：「明天宜蘭大溪適合衝浪嗎？」"
+          rows="1"
+          autofocus
+        ></textarea>
+        <button id="send-btn" onclick="sendMessage()">送出</button>
+      </div>
+    </div>
+
+    <!-- 新增日誌 -->
+    <div class="logs-section">
+      <div class="logs-header">
+        <h2>✏️ 新增衝浪紀錄</h2>
+        <span class="form-hint">客觀數據由系統自動抓取</span>
+      </div>
+      <form id="log-form" onsubmit="submitLog(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="log-date">日期</label>
+            <input type="date" id="log-date" name="date" required>
+          </div>
+          <div class="form-group">
+            <label for="log-location">地點</label>
+            <input type="text" id="log-location" name="location" placeholder="例：墾丁、大溪" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>評價</label>
+          <div class="rating-group">
+            <label class="rating-opt good"><input type="radio" name="experience_rating" value="好" required> 👍 好</label>
+            <label class="rating-opt ok"><input type="radio" name="experience_rating" value="普通"> 👌 普通</label>
+            <label class="rating-opt bad"><input type="radio" name="experience_rating" value="不好"> 👎 不好</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>潮汐（可選）</label>
+          <div class="rating-group">
+            <label class="rating-opt tide"><input type="radio" name="tide" value="漲潮"> 🌊 漲潮</label>
+            <label class="rating-opt tide"><input type="radio" name="tide" value="退潮"> 🏖️ 退潮</label>
+            <label class="rating-opt tide"><input type="radio" name="tide" value="高潮"> ⬆️ 高潮</label>
+            <label class="rating-opt tide"><input type="radio" name="tide" value="低潮"> ⬇️ 低潮</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="log-notes">備註（可選）</label>
+          <textarea id="log-notes" name="notes" rows="2" placeholder="人數、板型、個人感受…"></textarea>
+        </div>
+        <div class="form-footer">
+          <span id="log-form-msg"></span>
+          <button type="submit" id="log-submit-btn" class="submit-btn">儲存紀錄</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 最近紀錄 -->
+    <div class="logs-section">
+      <div class="logs-header">
+        <h2>📋 衝浪日誌</h2>
+        <button onclick="loadLogs()" class="refresh-btn">↻ 重新整理</button>
+      </div>
+      <div id="logs-table-wrap">
+        <p class="logs-empty">載入中…</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+</body>
+</html>
