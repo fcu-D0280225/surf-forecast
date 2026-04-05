@@ -375,7 +375,7 @@ function showError(msg) {
 // ── Chat Widget ───────────────────────────────────────────────────────────────
 
 window.chatKeydown = function (e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
     e.preventDefault();
     sendChat();
   }
@@ -415,13 +415,18 @@ window.sendChat = async function () {
 
   input.value = '';
   input.disabled = true;
-  sendBtn.disabled = true;
+  sendBtn.textContent = '取消';
+  sendBtn.disabled = false;
 
   appendChatMsg('user', question);
   const loading = appendChatMsg('assistant', '🌊 AI 思考中…');
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
+
+  sendBtn.onclick = () => {
+    controller.abort();
+  };
 
   try {
     const res = await fetch('/api/chat', {
@@ -444,13 +449,14 @@ window.sendChat = async function () {
   } catch (err) {
     clearTimeout(timeout);
     if (err.name === 'AbortError') {
-      loading.textContent = '⏱ 連線逾時，請稍後再試。卡片數據可展開「瀏覽所有浪點」查閱。';
+      loading.textContent = '已取消。';
     } else {
       loading.textContent = '網路錯誤，請稍後再試';
     }
   } finally {
     input.disabled = false;
-    sendBtn.disabled = false;
+    sendBtn.textContent = '送出';
+    sendBtn.onclick = sendChat;
     input.focus();
   }
 };

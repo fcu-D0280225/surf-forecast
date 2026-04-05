@@ -163,7 +163,7 @@ app.post('/api/chat', async (req, res) => {
   const seasonalCtx = getSeasonalContext(todayCST);
 
   const prompt = `你是台灣衝浪助理，用繁體中文回答，語氣親切實用，回答不超過 220 字。
-格式規定：純文字，不得使用 markdown、不得用星號（*）或井號（#），條列用「•」符號。${timeInstruction}
+格式規定：純文字，不得使用 markdown、不得用星號（*）或井號（#）。回答必須以條列方式呈現，每個重點獨立一行，開頭用「•」符號，不寫大段落文字。${timeInstruction}
 ${seasonalCtx}
 
 以下是最新資料：
