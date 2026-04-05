@@ -3,15 +3,21 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "node src/index.js",
-    "web": "node src/web-server.js",
-    "add-user": "node src/add-user.js"
+    "start": "npm run forecast && node src/server.js",
+    "serve": "node src/server.js",
+    "dev": "npm run forecast && nodemon src/server.js",
+    "forecast": "node scripts/fetch-and-generate.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test-prompt": "node scripts/test-prompt.js"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "latest",
-    "@modelcontextprotocol/sdk": "latest",
-    "@xenova/transformers": "^2.17.2",
-    "better-sqlite3": "^11.7.0",
+    "@anthropic-ai/claude-code": "^2.1.89",
+    "better-sqlite3": "^12.8.0",
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "vitest": "latest"
   }
 }

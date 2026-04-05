@@ -1,0 +1,22 @@
+{
+  "spot": "donghe",
+  "name": "東河",
+  "generated_at": "2026-04-05T08:47:44.351Z",
+  "date": "2026-04-06",
+  "stale": false,
+  "stale_since": null,
+  "swell_height_m": 0.8,
+  "swell_period_s": 4,
+  "swell_direction_deg": 172,
+  "wind_wave_height_m": 0.4,
+  "wind_speed_ms": 2,
+  "wind_direction_deg": 235,
+  "best_window_start": "16:00",
+  "best_window_end": "22:00",
+  "swell_ratio": 0.66,
+  "wind_model_spread_ms": 0.2,
+  "confidence": "low",
+  "rating": 2,
+  "summary": "浪小週期短，適合練習基礎動作",
+  "notes": "春季過渡期，東北季風漸弱，預報信心度低，實際浪況可能與預報有落差，建議出發前再確認最新資訊。"
+}

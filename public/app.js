@@ -1,309 +1,487 @@
-/* ── DOM refs ─────────────────────────────────────────────────── */
-const messagesEl = document.getElementById('messages');
-const inputEl    = document.getElementById('input');
-const sendBtn    = document.getElementById('send-btn');
+/**
+ * app.js — 台灣衝浪預報 PWA
+ * 從 /data/{slug}.json 讀取預先生成的預報，渲染浪點卡片。
+ * 用戶可自選顯示哪些浪點（存 localStorage）。
+ */
 
-/* ── Quick action buttons ─────────────────────────────────────── */
-document.querySelectorAll('.quick-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    inputEl.value = btn.dataset.msg;
-    sendMessage();
-  });
-});
+// ── Service Worker Registration ───────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
 
-/* ── Auto-resize textarea ─────────────────────────────────────── */
-inputEl.addEventListener('input', () => {
-  inputEl.style.height = 'auto';
-  inputEl.style.height = inputEl.scrollHeight + 'px';
-});
+// ── Constants ─────────────────────────────────────────────────────────────────
+const LS_SELECTED = 'surf-selected-spots';
+const LS_FEEDBACK = 'surf-feedback';
 
-/* ── Enter to send (Shift+Enter = newline) ────────────────────── */
-inputEl.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-});
+// ── State ─────────────────────────────────────────────────────────────────────
+let allSpots    = [];   // from /spots.json
+let forecasts   = {};   // slug → forecast JSON
+let selected    = [];   // slugs user wants to see
 
-/* ── Send message ─────────────────────────────────────────────── */
-async function sendMessage() {
-  const text = inputEl.value.trim();
-  if (!text || sendBtn.disabled) return;
-
-  appendMessage('user', text);
-  inputEl.value = '';
-  inputEl.style.height = 'auto';
-  sendBtn.disabled = true;
-
-  // Typing indicator
-  const typingId = appendTyping();
-
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
   try {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text }),
+    const res = await fetch('/spots.json');
+    if (!res.ok) throw new Error(`spots.json ${res.status}`);
+    allSpots = await res.json();
+  } catch (err) {
+    showError('無法載入浪點設定：' + err.message);
+    return;
+  }
+
+  // Load user selection (default: all)
+  const saved = localStorage.getItem(LS_SELECTED);
+  selected = saved
+    ? JSON.parse(saved).filter(s => allSpots.some(sp => sp.slug === s))
+    : allSpots.map(sp => sp.slug);
+
+  buildSpotSelector();
+  await loadForecasts();
+  renderCards();
+  renderAccuracy();
+  await loadWeeklyReport();
+}
+
+// ── Spot Selector ─────────────────────────────────────────────────────────────
+function buildSpotSelector() {
+  const container = document.getElementById('spot-checkboxes');
+  container.innerHTML = '';
+
+  // Group by region
+  const regions = [...new Set(allSpots.map(s => s.region))];
+  regions.forEach(region => {
+    const group = document.createElement('div');
+    group.className = 'region-group';
+    group.innerHTML = `<div class="region-label">${region}</div>`;
+
+    allSpots.filter(s => s.region === region).forEach(spot => {
+      const label = document.createElement('label');
+      label.className = 'spot-check-label';
+      const checked = selected.includes(spot.slug) ? 'checked' : '';
+      label.innerHTML = `
+        <input type="checkbox" value="${spot.slug}" ${checked} onchange="onSpotToggle(this)">
+        <span class="spot-check-name">${spot.name}</span>
+        <span class="spot-check-desc">${spot.description}</span>
+      `;
+      group.appendChild(label);
     });
 
-    removeMessage(typingId);
-
-    if (!response.ok) {
-      appendMessage('assistant', '⚠️ 伺服器錯誤，請稍後再試');
-      return;
-    }
-
-    // SSE stream reading
-    const reader  = response.body.getReader();
-    const decoder = new TextDecoder();
-    let   buffer  = '';
-    let   bubbleId  = null;
-    let   finalText = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop(); // keep incomplete line
-
-      for (const line of lines) {
-        if (!line.startsWith('data:')) continue;
-        const raw = line.slice(5).trim();
-        if (raw === '[DONE]') break;
-
-        let evt;
-        try { evt = JSON.parse(raw); } catch { continue; }
-
-        if (evt.type === 'status') {
-          appendStatus(evt.text);
-        } else if (evt.type === 'text') {
-          // Streaming partial text — append to live bubble
-          if (!bubbleId) bubbleId = appendMessage('assistant', '', true);
-          appendToMessage(bubbleId, evt.text);
-          finalText += evt.text;
-        } else if (evt.type === 'done') {
-          // Final complete result (replace live bubble or create new)
-          if (bubbleId) {
-            setMessageText(bubbleId, evt.text);
-          } else {
-            appendMessage('assistant', evt.text);
-          }
-          finalText = evt.text;
-          loadLogs(); // refresh log table after any response
-        } else if (evt.type === 'error') {
-          appendMessage('assistant', `⚠️ ${evt.text}`);
-        }
-      }
-    }
-
-    // Fallback: if only 'text' events came (no 'done'), keep as-is
-    if (!finalText && bubbleId) {
-      // do nothing
-    }
-
-  } catch (err) {
-    removeMessage(typingId);
-    appendMessage('assistant', `⚠️ 連線錯誤：${err.message}`);
-  }
-
-  sendBtn.disabled = false;
-  inputEl.focus();
+    container.appendChild(group);
+  });
 }
 
-/* ── Message helpers ──────────────────────────────────────────── */
-let msgCounter = 0;
-
-function appendMessage(role, text, empty = false) {
-  const id  = 'msg-' + (++msgCounter);
-  const div = document.createElement('div');
-  div.className = `message ${role}`;
-  div.id = id;
-
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  if (!empty) bubble.textContent = text;
-  div.appendChild(bubble);
-
-  messagesEl.appendChild(div);
-  scrollBottom();
-  return id;
-}
-
-function appendToMessage(id, text) {
-  const el = document.getElementById(id)?.querySelector('.bubble');
-  if (el) {
-    el.textContent += text;
-    scrollBottom();
-  }
-}
-
-function setMessageText(id, text) {
-  const el = document.getElementById(id)?.querySelector('.bubble');
-  if (el) {
-    el.textContent = text;
-    scrollBottom();
-  }
-}
-
-function appendStatus(text) {
-  const id  = 'msg-' + (++msgCounter);
-  const div = document.createElement('div');
-  div.className = 'message status';
-  div.id = id;
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  bubble.textContent = text;
-  div.appendChild(bubble);
-  messagesEl.appendChild(div);
-  // Auto-remove status after 8s
-  setTimeout(() => div.remove(), 8000);
-  scrollBottom();
-  return id;
-}
-
-function appendTyping() {
-  const id  = 'msg-' + (++msgCounter);
-  const div = document.createElement('div');
-  div.className = 'message assistant';
-  div.id = id;
-  div.innerHTML = `<div class="bubble">
-    <span class="typing-dot"></span>
-    <span class="typing-dot"></span>
-    <span class="typing-dot"></span>
-  </div>`;
-  messagesEl.appendChild(div);
-  scrollBottom();
-  return id;
-}
-
-function removeMessage(id) {
-  document.getElementById(id)?.remove();
-}
-
-function scrollBottom() {
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-/* ── Load logs table ──────────────────────────────────────────── */
-async function loadLogs() {
-  const wrap = document.getElementById('logs-table-wrap');
-  try {
-    const res  = await fetch('/api/logs');
-    const rows = await res.json();
-
-    if (!rows.length) {
-      wrap.innerHTML = '<p class="logs-empty">還沒有任何衝浪紀錄</p>';
-      return;
-    }
-
-    const ratingClass = r => `rating-${r}`;
-
-    const condTags = (row) => {
-      const tags = [];
-      if (row.wave_height_m    != null) tags.push(`浪${row.wave_height_m}m`);
-      if (row.swell_height_m   != null) tags.push(`湧${row.swell_height_m}m`);
-      if (row.wave_period_s    != null) tags.push(`${row.wave_period_s}s`);
-      if (row.wave_direction_text)      tags.push(`浪向${row.wave_direction_text}`);
-      if (row.wind_speed_kmh   != null) tags.push(`風${row.wind_speed_kmh}km/h`);
-      if (row.wind_direction_text)      tags.push(row.wind_direction_text);
-      if (row.water_temp_c     != null) tags.push(`水溫${row.water_temp_c}°C`);
-      if (row.weather_text)             tags.push(row.weather_text);
-      if (row.tide)                     tags.push(row.tide);
-      return tags.map(t => `<span class="cond-tag">${t}</span>`).join('');
-    };
-
-    wrap.innerHTML = `
-      <div style="overflow-x:auto">
-        <table class="log-table">
-          <thead>
-            <tr>
-              <th>日期</th>
-              <th>地點</th>
-              <th>評價</th>
-              <th>海況</th>
-              <th>備註</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map(r => `
-              <tr>
-                <td>${r.date_iso}</td>
-                <td>${r.spot}</td>
-                <td class="${ratingClass(r.rating)}">${r.rating}</td>
-                <td>${condTags(r) || '<span style="color:#9ca3af">—</span>'}</td>
-                <td>${r.notes || ''}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>`;
-  } catch {
-    wrap.innerHTML = '<p class="logs-empty">無法載入紀錄</p>';
-  }
-}
-
-// ── Auth ──────────────────────────────────────────────────────────
-async function initAuth() {
-  try {
-    const res  = await fetch('/api/auth/me');
-    if (!res.ok) { window.location.href = '/login'; return; }
-    const data = await res.json();
-    document.getElementById('display-name').textContent = `👤 ${data.displayName}`;
-  } catch {
-    window.location.href = '/login';
-  }
-}
-
-async function doLogout() {
-  await fetch('/api/auth/logout', { method: 'POST' });
-  window.location.href = '/login';
-}
-
-// 攔截 401，自動跳登入頁
-const _origFetch = window.fetch;
-window.fetch = async (...args) => {
-  const res = await _origFetch(...args);
-  if (res.status === 401) { window.location.href = '/login'; }
-  return res;
+window.toggleSpotSelector = function () {
+  const panel = document.getElementById('spot-selector');
+  const btn   = document.getElementById('spot-toggle-btn');
+  const isHidden = panel.hidden;
+  panel.hidden = !isHidden;
+  btn.classList.toggle('active', isHidden);
 };
 
-/* ── Log form submit ──────────────────────────────────────────── */
-async function submitLog(e) {
-  e.preventDefault();
-  const form    = e.target;
-  const btn     = document.getElementById('log-submit-btn');
-  const msgEl   = document.getElementById('log-form-msg');
-  const data    = Object.fromEntries(new FormData(form));
+window.onSpotToggle = function (checkbox) {
+  const slug = checkbox.value;
+  if (checkbox.checked) {
+    if (!selected.includes(slug)) selected.push(slug);
+  } else {
+    selected = selected.filter(s => s !== slug);
+  }
+  localStorage.setItem(LS_SELECTED, JSON.stringify(selected));
+  renderCards();
+};
 
-  btn.disabled  = true;
-  msgEl.textContent = '儲存中…';
-  msgEl.className   = '';
+window.selectAll = function () {
+  selected = allSpots.map(s => s.slug);
+  localStorage.setItem(LS_SELECTED, JSON.stringify(selected));
+  buildSpotSelector();
+  renderCards();
+};
 
-  try {
-    const res = await fetch('/api/logs', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(data),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || '儲存失敗');
-    msgEl.textContent = `✅ 已儲存（${json.spot}）`;
-    msgEl.className   = 'form-msg-ok';
-    form.reset();
-    loadLogs();
-  } catch (err) {
-    msgEl.textContent = `❌ ${err.message}`;
-    msgEl.className   = 'form-msg-err';
-  } finally {
-    btn.disabled = false;
+window.selectNone = function () {
+  selected = [];
+  localStorage.setItem(LS_SELECTED, JSON.stringify(selected));
+  buildSpotSelector();
+  renderCards();
+};
+
+// ── Load Forecasts ────────────────────────────────────────────────────────────
+async function loadForecasts() {
+  const results = await Promise.allSettled(
+    allSpots.map(spot =>
+      fetch(`/data/${spot.slug}.json`)
+        .then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status}`)))
+        .then(data => ({ slug: spot.slug, data }))
+    )
+  );
+
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      forecasts[r.value.slug] = r.value.data;
+    } else {
+      forecasts[allSpots[i].slug] = null; // no data yet
+    }
+  });
+
+  // Update header date
+  const dates = Object.values(forecasts).filter(Boolean).map(f => f.date);
+  if (dates.length) {
+    const d = dates[0];
+    document.getElementById('forecast-date').textContent =
+      `明天 ${d} 的預報`;
+  } else {
+    document.getElementById('forecast-date').textContent = '尚無預報資料';
   }
 }
 
-// Load on startup
-initAuth();
-loadLogs();
-// Default log date to today
-const todayIso = new Date().toLocaleDateString('sv'); // YYYY-MM-DD
-const logDateEl = document.getElementById('log-date');
-if (logDateEl) { logDateEl.value = todayIso; logDateEl.max = todayIso; }
+// ── Render Cards ──────────────────────────────────────────────────────────────
+function renderCards() {
+  const container = document.getElementById('cards');
+  const loading   = document.getElementById('loading');
+  if (loading) loading.remove();
+
+  if (selected.length === 0) {
+    container.innerHTML = '<p class="empty-state">請選擇至少一個浪點 ⚙️</p>';
+    return;
+  }
+
+  const visibleSpots = allSpots.filter(s => selected.includes(s.slug));
+
+  container.innerHTML = '';
+  visibleSpots.forEach(spot => {
+    const f = forecasts[spot.slug];
+    container.appendChild(buildCard(spot, f));
+  });
+}
+
+function buildCard(spot, f) {
+  const article = document.createElement('article');
+  article.className = 'spot-card';
+  article.dataset.slug = spot.slug;
+
+  if (!f) {
+    article.innerHTML = `
+      <div class="card-header" onclick="toggleCard(this)">
+        <div class="card-header-left">
+          <h2>${spot.name}</h2>
+          <span class="region-tag">${spot.region}</span>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <p class="no-data">尚無預報資料</p>
+      </div>
+    `;
+    article.querySelector('.card-body').hidden = true;
+    return article;
+  }
+
+  const confLabel  = { high: '高信心', med: '中信心', low: '低信心' }[f.confidence] ?? '';
+  const confClass  = { high: 'conf-high', med: 'conf-med', low: 'conf-low' }[f.confidence] ?? '';
+  const stars      = f.rating ? renderStars(f.rating) : '—';
+  const windDir    = f.wind_direction_deg != null ? degToArrow(f.wind_direction_deg) : '';
+  const swellDir   = f.swell_direction_deg != null ? degToArrow(f.swell_direction_deg) : '';
+  const staleBanner = f.stale
+    ? `<div class="stale-banner">⚠️ ${f.stale_since ? `資料自 ${f.stale_since.slice(0, 10)} 起未更新` : '資料略舊'}</div>`
+    : '';
+
+  const subSpotsHtml = spot.sub_spots?.length
+    ? `<span class="sub-spots-tag">${spot.sub_spots.join(' · ')}</span>`
+    : '';
+
+  article.innerHTML = `
+    ${staleBanner}
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-header-left">
+        <h2>${spot.name}</h2>
+        <span class="region-tag">${spot.region}</span>
+        ${subSpotsHtml}
+      </div>
+      <div class="card-header-right">
+        <span class="stars">${stars}</span>
+        <span class="card-chevron">▼</span>
+      </div>
+    </div>
+    <div class="card-body" hidden>
+      <p class="summary">${f.summary ?? ''}</p>
+      <div class="metrics">
+        <div class="metric">
+          <span class="metric-label">湧浪</span>
+          <span class="metric-value">${f.swell_height_m ?? '—'}m ${swellDir}</span>
+          <span class="metric-sub">${f.swell_period_s ?? '—'}s</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">風浪</span>
+          <span class="metric-value">${f.wind_wave_height_m ?? '—'}m</span>
+          <span class="metric-sub">${f.wind_speed_ms ?? '—'} m/s ${windDir}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">最佳時窗</span>
+          <span class="metric-value">${f.best_window_start}–${f.best_window_end}</span>
+        </div>
+      </div>
+      ${f.notes ? `<p class="notes">📌 ${f.notes}</p>` : ''}
+      <div class="card-footer">
+        <span class="conf-badge ${confClass}">${confLabel}</span>
+        ${f.wind_model_spread_ms != null ? `<span class="spread-badge spread-${f.wind_model_spread_ms > 4 ? 'high' : f.wind_model_spread_ms > 2 ? 'med' : 'low'}">模型差異 ${f.wind_model_spread_ms} m/s</span>` : ''}
+      </div>
+    </div>
+  `;
+
+  return article;
+}
+
+window.toggleCard = function (header) {
+  const body    = header.nextElementSibling;
+  const chevron = header.querySelector('.card-chevron');
+  const open    = body.hidden;
+  body.hidden   = !open;
+  chevron.textContent = open ? '▲' : '▼';
+};
+
+// ── Report (自由文字回饋) ──────────────────────────────────────────────────────
+window.submitReport = async function () {
+  const textarea = document.getElementById('report-input');
+  const done     = document.getElementById('report-done');
+  const content  = textarea.value.trim();
+  if (!content) return;
+
+  try {
+    await fetch('/api/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    });
+  } catch (err) {
+    console.warn('[report]', err.message);
+  }
+
+  textarea.value = '';
+  done.hidden = false;
+  setTimeout(() => { done.hidden = true; }, 3000);
+};
+
+// ── 好浪命中率 ────────────────────────────────────────────────────────────────
+function getFeedback() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_FEEDBACK) ?? '[]');
+  } catch {
+    return [];
+  }
+}
+
+function renderAccuracy() {
+  const bar  = document.getElementById('accuracy-bar');
+  const records = getFeedback().filter(r => r.ai_rating != null && r.went !== null);
+  const denom = records.length;
+
+  if (denom < 5) { bar.hidden = true; return; }
+
+  const numer = records.filter(r => r.went === true && r.ai_rating >= 3).length;
+  const pct   = Math.round(numer / denom * 100);
+
+  bar.hidden = false;
+  bar.innerHTML = `
+    <span class="accuracy-label">好浪命中率</span>
+    <span class="accuracy-value">${pct}%</span>
+    <span class="accuracy-meta">（${denom} 筆回饋）</span>
+  `;
+}
+
+// ── Weekly Report ─────────────────────────────────────────────────────────────
+async function loadWeeklyReport() {
+  let report;
+  try {
+    const res = await fetch('/data/weekly-report.json');
+    if (!res.ok) return; // no weekly data yet
+    report = await res.json();
+  } catch {
+    return;
+  }
+
+  const section = document.getElementById('weekly-section');
+  const meta    = document.getElementById('weekly-meta');
+  const cards   = document.getElementById('weekly-cards');
+
+  section.hidden = false;
+
+  const genDate = report.generated_at?.slice(0, 10) ?? '';
+  meta.innerHTML = `
+    <span class="weekly-range">📅 ${report.week_start} ~ ${report.week_end}</span>
+    ${report.seasonal_context ? `<span class="weekly-season">${report.seasonal_context}</span>` : ''}
+    <span class="weekly-gen">（更新：${genDate}）</span>
+  `;
+
+  cards.innerHTML = '';
+  (report.regions ?? []).forEach(r => {
+    cards.appendChild(buildWeeklyRegionCard(r));
+  });
+}
+
+function buildWeeklyRegionCard(r) {
+  const div = document.createElement('div');
+  div.className = 'weekly-region-card';
+
+  if (r.error) {
+    div.innerHTML = `
+      <div class="weekly-region-header">
+        <span class="weekly-region-name">${r.region}</span>
+        <span class="weekly-spots">${(r.spots ?? []).join(' · ')}</span>
+      </div>
+      <p class="weekly-error">資料暫無法取得</p>
+    `;
+    return div;
+  }
+
+  const dailyHtml = (r.daily_ratings ?? []).map(d => {
+    const stars = d.rating ? renderStars(d.rating) : '—';
+    return `
+      <div class="weekly-day">
+        <span class="weekly-day-label">${d.weekday}</span>
+        <span class="weekly-day-stars">${stars}</span>
+        <span class="weekly-day-note">${d.note ?? ''}</span>
+      </div>
+    `;
+  }).join('');
+
+  div.innerHTML = `
+    <div class="weekly-region-header">
+      <span class="weekly-region-name">${r.region}</span>
+      <span class="weekly-spots">${(r.spots ?? []).join(' · ')}</span>
+    </div>
+    <p class="weekly-summary">${r.overall_summary ?? ''}</p>
+    <div class="weekly-best-worst">
+      <span class="weekly-best">👍 最佳：${r.best_day ?? '—'}</span>
+      <span class="weekly-worst">👎 最差：${r.worst_day ?? '—'}</span>
+    </div>
+    ${r.highlight ? `<p class="weekly-highlight">⚠️ ${r.highlight}</p>` : ''}
+    <div class="weekly-days">${dailyHtml}</div>
+  `;
+  return div;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function renderStars(rating) {
+  return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+}
+
+function degToArrow(deg) {
+  const arrows = ['↑','↗','→','↘','↓','↙','←','↖'];
+  return arrows[Math.round((deg % 360) / 45) % 8];
+}
+
+function showError(msg) {
+  document.getElementById('cards').innerHTML = `<p class="error-state">⚠️ ${msg}</p>`;
+}
+
+// ── Chat Widget ───────────────────────────────────────────────────────────────
+
+window.chatKeydown = function (e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+};
+
+window.quickAsk = function (question) {
+  const input = document.getElementById('chat-input');
+  input.value = question;
+  sendChat();
+};
+
+window.toggleWeekly = function () {
+  const body    = document.getElementById('weekly-body');
+  const chevron = document.getElementById('weekly-chevron');
+  const open    = body.hidden;
+  body.hidden   = !open;
+  chevron.textContent = open ? '▲' : '▼';
+};
+
+window.toggleBrowse = function () {
+  const body    = document.getElementById('browse-body');
+  const chevron = document.getElementById('browse-chevron');
+  const open    = body.hidden;
+  body.hidden   = !open;
+  chevron.textContent = open ? '▲' : '▼';
+};
+
+window.sendChat = async function () {
+  const input   = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send-btn');
+  const question = input.value.trim();
+  if (!question) return;
+
+  // Hide quick prompts after first use
+  const prompts = document.getElementById('quick-prompts');
+  if (prompts) prompts.hidden = true;
+
+  input.value = '';
+  input.disabled = true;
+  sendBtn.disabled = true;
+
+  appendChatMsg('user', question);
+  const loading = appendChatMsg('assistant', '🌊 AI 思考中…');
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    const data = await res.json();
+    loading.textContent = data.answer ?? data.error ?? '無法取得回答';
+
+    // Render inline spot cards if server returned matched spots
+    if (data.spots?.length) {
+      const row = document.createElement('div');
+      row.className = 'inline-cards-row';
+      data.spots.forEach(spot => row.appendChild(buildInlineCard(spot)));
+      loading.after(row);
+    }
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err.name === 'AbortError') {
+      loading.textContent = '⏱ 連線逾時，請稍後再試。卡片數據可展開「瀏覽所有浪點」查閱。';
+    } else {
+      loading.textContent = '網路錯誤，請稍後再試';
+    }
+  } finally {
+    input.disabled = false;
+    sendBtn.disabled = false;
+    input.focus();
+  }
+};
+
+function buildInlineCard(spot) {
+  const stars = spot.rating ? renderStars(spot.rating) : '—';
+  const div = document.createElement('div');
+  div.className = 'inline-spot-card';
+  div.innerHTML = `
+    <div class="isc-header">
+      <span class="isc-name">${spot.name}</span>
+      <span class="region-tag">${spot.region}</span>
+    </div>
+    <div class="isc-body">
+      <span class="stars">${stars}</span>
+      <span class="isc-window">⏰ ${spot.best_window_start}–${spot.best_window_end}</span>
+    </div>
+    <p class="isc-summary">${spot.summary ?? ''}</p>
+  `;
+  return div;
+}
+
+function appendChatMsg(role, text) {
+  const log = document.getElementById('chat-log');
+  const div = document.createElement('div');
+  div.className = `chat-msg chat-${role}`;
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+init();

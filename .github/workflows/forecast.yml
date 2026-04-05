@@ -1,0 +1,53 @@
+name: Daily Surf Forecast
+
+on:
+  schedule:
+    # 每天 10:00 UTC = 18:00 CST (Asia/Taipei)
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+    inputs:
+      forecast_date:
+        description: '覆寫預報日期 (YYYY-MM-DD，預設明天 CST)'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Generate forecast JSON
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # 手動觸發時可覆寫日期；否則 JS 自己算明天 CST
+          FORECAST_DATE: ${{ github.event.inputs.forecast_date }}
+        run: node scripts/fetch-and-generate.js
+
+      - name: Commit & push
+        run: |
+          # 計算明天 CST 日期（顯示用）
+          TOMORROW_CST=$(TZ=Asia/Taipei date -d tomorrow +%Y-%m-%d)
+
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "GitHub Actions"
+
+          # 拉最新（處理 concurrent dispatch + cron）
+          git pull --rebase origin main
+
+          git add public/data/
+          git diff --cached --quiet && echo "nothing to commit" && exit 0
+
+          git commit -m "chore: forecast ${TOMORROW_CST}"
+          git push

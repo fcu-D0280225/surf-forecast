@@ -1,0 +1,45 @@
+name: Weekly Regional Surf Forecast
+
+on:
+  schedule:
+    # 每週四 10:00 UTC = 18:00 CST
+    - cron: '0 10 * * 4'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Generate weekly regional forecast
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/weekly-report.js
+
+      - name: Commit & push
+        run: |
+          WEEK=$(TZ=Asia/Taipei date +%Y-W%V)
+
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "GitHub Actions"
+
+          git pull --rebase origin main
+
+          git add public/data/weekly-report.json
+          git diff --cached --quiet && echo "nothing to commit" && exit 0
+
+          git commit -m "chore: weekly forecast ${WEEK}"
+          git push

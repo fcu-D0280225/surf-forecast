@@ -20,16 +20,16 @@
   "categories": ["sports", "weather"],
   "shortcuts": [
     {
-      "name": "新增衝浪紀錄",
-      "short_name": "紀錄",
-      "description": "快速新增今天衝浪紀錄",
-      "url": "/#log-form"
+      "name": "今日預報",
+      "short_name": "預報",
+      "description": "查看明天各浪點預報",
+      "url": "/"
     },
     {
-      "name": "問問題",
-      "short_name": "問浪況",
-      "description": "詢問今天浪況",
-      "url": "/"
+      "name": "選擇浪點",
+      "short_name": "浪點",
+      "description": "自訂顯示哪些浪點",
+      "url": "/#spot-selector"
     }
   ]
 }

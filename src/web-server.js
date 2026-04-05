@@ -104,10 +104,73 @@ const SYSTEM_PROMPT = `你是一位專業的衝浪教練，擅長分析海況並
 3. 若使用者問過去衝過的紀錄、想回顧某類浪況，使用 search_surf_logs
 4. 若使用者問「X 天後適合衝浪嗎」或「預測某日浪況」，使用 predict_surf_day
    → 工具會抓預報條件，並從歷史紀錄找相似天的評價，輔助預測
+   → 預測時務必參考下方「使用者個人好浪條件」，將預報數值與個人統計對比後給出結論
 5. 用繁體中文分析並解釋浪況
 6. 給出具體建議：適不適合衝浪、適合哪種程度的衝浪者
 
 所有回覆請使用繁體中文。`;
+
+/**
+ * 從 DB 讀取個人統計，組成 system prompt 的補充段落。
+ * 紀錄數不足時回傳空字串，不影響正常使用。
+ */
+function buildStatsContext() {
+  try {
+    const db = new Database(DB_PATH, { readonly: true });
+
+    const total = db.prepare('SELECT COUNT(*) as n FROM surf_log').get()?.n ?? 0;
+    if (total === 0) return '';
+
+    const avgCond = db.prepare(`
+      SELECT rating,
+        ROUND(AVG(wave_height_m),  1) as wave_h,
+        ROUND(AVG(swell_height_m), 1) as swell_h,
+        ROUND(AVG(wave_period_s),  0) as period,
+        ROUND(AVG(wind_speed_kmh), 0) as wind,
+        COUNT(*) as n
+      FROM surf_log
+      WHERE wave_height_m IS NOT NULL
+      GROUP BY rating
+      ORDER BY CASE rating WHEN '好' THEN 1 WHEN '普通' THEN 2 ELSE 3 END
+    `).all();
+
+    const bySpot = db.prepare(`
+      SELECT spot,
+        COUNT(*) as total,
+        SUM(CASE WHEN rating = '好' THEN 1 ELSE 0 END) as good
+      FROM surf_log
+      GROUP BY spot
+      ORDER BY total DESC
+      LIMIT 8
+    `).all();
+
+    let ctx = `\n\n## 使用者個人好浪條件（來自歷史 ${total} 筆衝浪紀錄）\n`;
+    ctx += '預測時請將預報數值與下表對比，判斷本次預報條件偏向哪個評價等級。\n';
+
+    if (avgCond.length) {
+      ctx += '\n### 各評價的平均客觀條件\n';
+      ctx += '| 評價 | 平均浪高 | 平均湧浪 | 平均週期 | 平均風速 | 樣本數 |\n';
+      ctx += '|:----:|:-------:|:-------:|:-------:|:-------:|:------:|\n';
+      for (const r of avgCond) {
+        const fmt = (v, u) => v != null ? `${v}${u}` : '—';
+        ctx += `| ${r.rating} | ${fmt(r.wave_h,'m')} | ${fmt(r.swell_h,'m')} | ${fmt(r.period,'s')} | ${fmt(r.wind,'km/h')} | ${r.n} 次 |\n`;
+      }
+    }
+
+    if (bySpot.length) {
+      ctx += '\n### 各浪點好浪率\n';
+      for (const s of bySpot) {
+        const rate = Math.round(s.good / s.total * 100);
+        ctx += `- ${s.spot}：${s.total} 次出海，好浪率 **${rate}%**\n`;
+      }
+    }
+
+    ctx += '\n預測結論請直接說明：「根據你的歷史數據，這次預報條件偏向○○，建議○○」。';
+    return ctx;
+  } catch {
+    return '';
+  }
+}
 
 // ── POST /api/chat ────────────────────────────────────────────────────────────
 app.post('/api/chat', async (req, res) => {
@@ -124,11 +187,14 @@ app.post('/api/chat', async (req, res) => {
   // 在訊息前加上使用者名稱，供 AI 知道是誰在問
   const promptWithUser = `[${req.user.displayName}] ${message}`;
 
+  // 每次請求都讀最新統計，確保剛記錄的資料立刻生效
+  const systemPrompt = SYSTEM_PROMPT + buildStatsContext();
+
   try {
     for await (const msg of query({
       prompt: promptWithUser,
       options: {
-        systemPrompt: SYSTEM_PROMPT,
+        systemPrompt,
         mcpServers: { 'surf-forecast': { command: 'node', args: [MCP_SERVER] } },
         maxTurns: 8,
         permissionMode: 'bypassPermissions',
@@ -187,6 +253,62 @@ app.get('/api/logs', (_req, res) => {
     `).all();
     res.json(rows);
   } catch { res.json([]); }
+});
+
+// ── GET /api/stats ────────────────────────────────────────────────────────────
+app.get('/api/stats', (_req, res) => {
+  try {
+    const db = new Database(DB_PATH, { readonly: true });
+
+    const overview = db.prepare(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN rating = '好'   THEN 1 ELSE 0 END) as good,
+        SUM(CASE WHEN rating = '普通' THEN 1 ELSE 0 END) as ok,
+        SUM(CASE WHEN rating = '不好' THEN 1 ELSE 0 END) as bad
+      FROM surf_log
+    `).get();
+
+    const bySpot = db.prepare(`
+      SELECT spot,
+        COUNT(*) as total,
+        SUM(CASE WHEN rating = '好'   THEN 1 ELSE 0 END) as good,
+        SUM(CASE WHEN rating = '普通' THEN 1 ELSE 0 END) as ok,
+        SUM(CASE WHEN rating = '不好' THEN 1 ELSE 0 END) as bad
+      FROM surf_log
+      GROUP BY spot
+      ORDER BY total DESC
+      LIMIT 10
+    `).all();
+
+    const byMonth = db.prepare(`
+      SELECT strftime('%Y-%m', date_iso) as month,
+        COUNT(*) as total,
+        SUM(CASE WHEN rating = '好'   THEN 1 ELSE 0 END) as good,
+        SUM(CASE WHEN rating = '普通' THEN 1 ELSE 0 END) as ok,
+        SUM(CASE WHEN rating = '不好' THEN 1 ELSE 0 END) as bad
+      FROM surf_log
+      GROUP BY month
+      ORDER BY month ASC
+      LIMIT 12
+    `).all();
+
+    const avgConditions = db.prepare(`
+      SELECT rating,
+        ROUND(AVG(wave_height_m),  1) as avg_wave_height,
+        ROUND(AVG(wave_period_s),  0) as avg_wave_period,
+        ROUND(AVG(wind_speed_kmh), 0) as avg_wind_speed,
+        ROUND(AVG(swell_height_m), 1) as avg_swell_height
+      FROM surf_log
+      WHERE wave_height_m IS NOT NULL
+      GROUP BY rating
+      ORDER BY CASE rating WHEN '好' THEN 1 WHEN '普通' THEN 2 ELSE 3 END
+    `).all();
+
+    res.json({ overview, bySpot, byMonth, avgConditions });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // no-op to avoid reference error (loadLogs is only meaningful client-side)

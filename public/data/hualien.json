@@ -1,0 +1,22 @@
+{
+  "spot": "hualien",
+  "name": "花蓮",
+  "generated_at": "2026-04-05T08:47:44.349Z",
+  "date": "2026-04-06",
+  "stale": false,
+  "stale_since": null,
+  "swell_height_m": 1.2,
+  "swell_period_s": 4,
+  "swell_direction_deg": 168,
+  "wind_wave_height_m": 0.1,
+  "wind_speed_ms": 0.7,
+  "wind_direction_deg": 175,
+  "best_window_start": "16:00",
+  "best_window_end": "22:00",
+  "swell_ratio": 0.9,
+  "wind_model_spread_ms": 0.2,
+  "confidence": "low",
+  "rating": 3,
+  "summary": "浪況尚可，初級者練習好時機",
+  "notes": "春季過渡期，東北季風漸弱，浪小週期短，數據信心度低，建議現場確認實際浪況"
+}
