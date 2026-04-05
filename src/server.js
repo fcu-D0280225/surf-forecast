@@ -263,8 +263,9 @@ app.post('/api/chat', requireAuth, async (req, res) => {
   const todayCST = new Date(Date.now() + 8 * 3600_000).toISOString().slice(0, 10);
   const seasonalCtx = getSeasonalContext(todayCST);
 
-  const prompt = `你是台灣衝浪助理，用繁體中文回答，語氣親切實用，回答不超過 220 字。
-格式規定：純文字，不得使用 markdown、不得用星號（*）或井號（#）。回答必須以條列方式呈現，每個重點獨立一行，開頭用「•」符號，不寫大段落文字。${timeInstruction}
+  const prompt = `你是台灣衝浪助理，用繁體中文回答，語氣親切實用，回答不超過 150 字。
+格式規定：純文字，不得使用 markdown、不得用星號（*）或井號（#）。回答必須以條列方式呈現，每個重點獨立一行，開頭用「•」符號，不寫大段落文字。
+數據規定：除非用戶明確詢問數字（如浪高、週期、風速），否則不要在回答中提及任何數值，只說結論和建議。${timeInstruction}
 ${seasonalCtx}
 
 以下是最新資料：
