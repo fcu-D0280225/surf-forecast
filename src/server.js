@@ -16,6 +16,11 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { insertReport, getRecentReports, listReports } from './rag-db.js';
 import { getSeasonalContext } from './forecast-utils.js';
+import {
+  login, logout, getSession, cleanExpiredSessions,
+  createUser, listUsers, deleteUser, userCount,
+  setPoints, deductPoint, getUserInfo,
+} from './auth.js';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -40,6 +45,96 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(PUBLIC_DIR));
+
+// ── Auth helpers ───────────────────────────────────────────────────────────────
+
+function getToken(req) {
+  // Cookie: surf_session=<token>
+  const cookie = req.headers.cookie || '';
+  const match  = cookie.match(/(?:^|;\s*)surf_session=([^;]+)/);
+  return match ? match[1] : null;
+}
+
+function requireAuth(req, res, next) {
+  const session = getSession(getToken(req));
+  if (!session) return res.status(401).json({ error: '請先登入' });
+  req.session = session;
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  const user = getUserInfo(req.session.user_id);
+  if (!user?.is_admin) return res.status(403).json({ error: '需要管理員權限' });
+  next();
+}
+
+cleanExpiredSessions();
+
+// ── Auth routes ────────────────────────────────────────────────────────────────
+
+app.post('/api/auth/login', (req, res) => {
+  const { username, password } = req.body ?? {};
+  if (!username || !password) return res.status(400).json({ error: '請填寫帳號和密碼' });
+
+  const result = login(username, password);
+  if (!result) return res.status(401).json({ error: '帳號或密碼錯誤' });
+
+  const maxAge = 30 * 24 * 3600;
+  res.setHeader('Set-Cookie', `surf_session=${result.token}; HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=Lax`);
+  res.json({ username: result.username, displayName: result.displayName, isAdmin: result.isAdmin });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  const token = getToken(req);
+  if (token) logout(token);
+  res.setHeader('Set-Cookie', 'surf_session=; HttpOnly; Path=/; Max-Age=0');
+  res.json({ ok: true });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  const session = getSession(getToken(req));
+  if (!session) return res.status(401).json({ error: '未登入' });
+  const user = getUserInfo(session.user_id);
+  if (!user) return res.status(401).json({ error: '未登入' });
+  res.json({
+    username:    user.username,
+    displayName: user.display_name,
+    isAdmin:     !!user.is_admin,
+    points:      user.is_admin ? null : user.points,
+  });
+});
+
+// ── Admin routes ───────────────────────────────────────────────────────────────
+
+app.get('/api/admin/users', requireAuth, requireAdmin, (_req, res) => {
+  res.json(listUsers());
+});
+
+app.post('/api/admin/users', requireAuth, requireAdmin, (req, res) => {
+  const { username, password, displayName, isAdmin = false, points = 0 } = req.body ?? {};
+  if (!username || !password || !displayName)
+    return res.status(400).json({ error: '請填寫 username / password / displayName' });
+  try {
+    createUser(username, password, displayName, { isAdmin, points });
+    res.json({ ok: true });
+  } catch (e) {
+    if (e.message?.includes('UNIQUE')) return res.status(409).json({ error: '帳號已存在' });
+    throw e;
+  }
+});
+
+app.patch('/api/admin/users/:username/points', requireAuth, requireAdmin, (req, res) => {
+  const { points } = req.body ?? {};
+  if (typeof points !== 'number' || points < 0)
+    return res.status(400).json({ error: 'points 必須為非負整數' });
+  const ok = setPoints(req.params.username, Math.floor(points));
+  ok ? res.json({ ok: true }) : res.status(404).json({ error: '找不到該用戶' });
+});
+
+app.delete('/api/admin/users/:username', requireAuth, requireAdmin, (req, res) => {
+  const ok = deleteUser(req.params.username);
+  ok ? res.json({ ok: true }) : res.status(404).json({ error: '找不到該用戶' });
+});
 
 // ── 讀取浪點設定 ───────────────────────────────────────────────────────────────
 let spots = [];
@@ -121,10 +216,16 @@ async function detectNewSpots(text) {
 }
 
 // ── POST /api/chat ─────────────────────────────────────────────────────────────
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', requireAuth, async (req, res) => {
   const { question } = req.body ?? {};
   if (!question?.trim()) {
     return res.status(400).json({ error: 'question required' });
+  }
+
+  // 扣點（admin 不扣）
+  const deduct = deductPoint(req.session.user_id);
+  if (!deduct.success) {
+    return res.status(402).json({ error: '點數不足，請聯絡管理員補充點數' });
   }
 
   // 各浪點今日預報摘要
@@ -196,7 +297,7 @@ ${forecastContext}${ragContext}
       })
       .filter(Boolean);
 
-    res.json({ answer, spots: mentionedSpots });
+    res.json({ answer, spots: mentionedSpots, remainingPoints: deduct.points });
   } catch (err) {
     console.error('[chat] error:', err.message);
     res.status(500).json({ error: 'Claude 呼叫失敗，請稍後再試' });

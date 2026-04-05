@@ -24,6 +24,8 @@ function db() {
         username     TEXT NOT NULL UNIQUE,
         display_name TEXT NOT NULL,
         password_hash TEXT NOT NULL,   -- "salt:hash"
+        is_admin     INTEGER NOT NULL DEFAULT 0,
+        points       INTEGER NOT NULL DEFAULT 0,
         created_at   TEXT NOT NULL DEFAULT (datetime('now'))
       );
       CREATE TABLE IF NOT EXISTS sessions (
@@ -34,6 +36,10 @@ function db() {
         expires_at   TEXT NOT NULL
       );
     `);
+    // migrate: add columns if upgrading from older schema
+    const cols = _db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+    if (!cols.includes('is_admin')) _db.exec("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0");
+    if (!cols.includes('points'))   _db.exec("ALTER TABLE users ADD COLUMN points   INTEGER NOT NULL DEFAULT 0");
   }
   return _db;
 }
@@ -54,15 +60,38 @@ export function verifyPassword(password, stored) {
 
 // ── 使用者 CRUD ───────────────────────────────────────────────────────────────
 
-export function createUser(username, password, displayName) {
+export function createUser(username, password, displayName, { isAdmin = false, points = 0 } = {}) {
   db().prepare(`
-    INSERT INTO users (username, display_name, password_hash)
-    VALUES (?, ?, ?)
-  `).run(username.trim().toLowerCase(), displayName.trim(), hashPassword(password));
+    INSERT INTO users (username, display_name, password_hash, is_admin, points)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(username.trim().toLowerCase(), displayName.trim(), hashPassword(password), isAdmin ? 1 : 0, points);
 }
 
 export function listUsers() {
-  return db().prepare('SELECT id, username, display_name, created_at FROM users').all();
+  return db().prepare('SELECT id, username, display_name, is_admin, points, created_at FROM users').all();
+}
+
+export function setPoints(username, points) {
+  const result = db().prepare('UPDATE users SET points = ? WHERE username = ?')
+                     .run(points, username.trim().toLowerCase());
+  return result.changes > 0;
+}
+
+// Returns { success, points } — fails if user has no points
+export function deductPoint(userId) {
+  const deduct = db().transaction(() => {
+    const user = db().prepare('SELECT points, is_admin FROM users WHERE id = ?').get(userId);
+    if (!user) return { success: false, points: 0 };
+    if (user.is_admin) return { success: true, points: null };  // admin: unlimited
+    if (user.points <= 0) return { success: false, points: 0 };
+    db().prepare('UPDATE users SET points = points - 1 WHERE id = ?').run(userId);
+    return { success: true, points: user.points - 1 };
+  });
+  return deduct();
+}
+
+export function getUserInfo(userId) {
+  return db().prepare('SELECT id, username, display_name, is_admin, points FROM users WHERE id = ?').get(userId);
 }
 
 export function deleteUser(username) {
@@ -92,7 +121,7 @@ export function login(username, password) {
     VALUES (?, ?, ?, ?, ?)
   `).run(token, user.id, user.username, user.display_name, expires);
 
-  return { token, username: user.username, displayName: user.display_name };
+  return { token, username: user.username, displayName: user.display_name, isAdmin: !!user.is_admin };
 }
 
 export function getSession(token) {

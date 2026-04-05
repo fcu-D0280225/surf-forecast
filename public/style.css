@@ -98,6 +98,36 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
 .spot-toggle-btn.active { background: rgba(255,255,255,.32); }
 .spot-toggle-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.points-badge {
+  background: rgba(255,255,255,.18);
+  border: 1.5px solid rgba(255,255,255,.40);
+  color: #fff;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: .80rem;
+  white-space: nowrap;
+}
+.logout-btn {
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,.40);
+  color: rgba(255,255,255,.75);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: .80rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.logout-btn:hover { background: rgba(255,255,255,.15); color: #fff; }
+
 /* ── Spot Selector Panel ─────────────────────────────────── */
 .spot-selector {
   background: var(--card-bg);

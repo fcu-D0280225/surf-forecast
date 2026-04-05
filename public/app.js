@@ -17,9 +17,42 @@ const LS_FEEDBACK = 'surf-feedback';
 let allSpots    = [];   // from /spots.json
 let forecasts   = {};   // slug → forecast JSON
 let selected    = [];   // slugs user wants to see
+let currentUser = null; // { username, displayName, isAdmin, points }
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+async function checkAuth() {
+  const res = await fetch('/api/auth/me');
+  if (res.status === 401) {
+    window.location.href = '/login.html';
+    return false;
+  }
+  currentUser = await res.json();
+  updatePointsBadge();
+  document.getElementById('logout-btn').hidden = false;
+  return true;
+}
+
+function updatePointsBadge() {
+  const badge = document.getElementById('points-badge');
+  if (!currentUser) { badge.hidden = true; return; }
+  if (currentUser.isAdmin) {
+    badge.textContent = '👑 管理員';
+    badge.hidden = false;
+  } else {
+    badge.textContent = `💧 ${currentUser.points ?? 0} 點`;
+    badge.hidden = false;
+  }
+}
+
+window.doLogout = async function () {
+  await fetch('/api/auth/logout', { method: 'POST' });
+  window.location.href = '/login.html';
+};
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
+  if (!await checkAuth()) return;
+
   try {
     const res = await fetch('/spots.json');
     if (!res.ok) throw new Error(`spots.json ${res.status}`);
@@ -436,8 +469,18 @@ window.sendChat = async function () {
       signal: controller.signal,
     });
     clearTimeout(timeout);
+    if (res.status === 401) { window.location.href = '/login.html'; return; }
+    if (res.status === 402) {
+      loading.textContent = '點數不足，請聯絡管理員補充點數。';
+      return;
+    }
     const data = await res.json();
     loading.textContent = data.answer ?? data.error ?? '無法取得回答';
+    // 更新剩餘點數
+    if (typeof data.remainingPoints === 'number' && currentUser) {
+      currentUser.points = data.remainingPoints;
+      updatePointsBadge();
+    }
 
     // Render inline spot cards if server returned matched spots
     if (data.spots?.length) {

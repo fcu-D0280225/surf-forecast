@@ -23,9 +23,13 @@
           <h1>🏄 台灣衝浪預報</h1>
           <p class="subtitle" id="forecast-date">載入中…</p>
         </div>
-        <button class="spot-toggle-btn" id="spot-toggle-btn" onclick="toggleSpotSelector()" aria-label="選擇浪點">
-          ⚙️ 選擇浪點
-        </button>
+        <div class="header-actions">
+          <span class="points-badge" id="points-badge" hidden></span>
+          <button class="spot-toggle-btn" id="spot-toggle-btn" onclick="toggleSpotSelector()" aria-label="選擇浪點">
+            ⚙️ 選擇浪點
+          </button>
+          <button class="logout-btn" id="logout-btn" onclick="doLogout()" hidden>登出</button>
+        </div>
       </div>
     </header>
 

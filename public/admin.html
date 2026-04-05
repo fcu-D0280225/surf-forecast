@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理員 — 台灣衝浪助手</title>
+  <link rel="stylesheet" href="login.css">
+  <style>
+    body { background: #f0f4f8; }
+    .admin-wrap { max-width: 700px; margin: 0 auto; padding: 24px 16px; }
+    h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
+    .sub { color: #64748b; font-size: .85rem; margin-bottom: 24px; }
+    table { width: 100%; border-collapse: collapse; background: #fff;
+            border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    th { background: #0ea5e9; color: #fff; text-align: left; padding: 10px 14px; font-size: .85rem; }
+    td { padding: 10px 14px; font-size: .88rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .badge-admin { background: #fef3c7; color: #92400e; border-radius: 8px; padding: 2px 8px; font-size: .78rem; }
+    .btn-sm { padding: 4px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: .82rem; font-family: inherit; }
+    .btn-edit { background: #e0f2fe; color: #0369a1; }
+    .btn-del  { background: #fee2e2; color: #b91c1c; }
+    .btn-edit:hover { background: #bae6fd; }
+    .btn-del:hover  { background: #fecaca; }
+    .add-card { background: #fff; border-radius: 12px; padding: 20px;
+                box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-top: 20px; }
+    .add-card h2 { font-size: 1rem; font-weight: 700; margin-bottom: 14px; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .form-row input { flex: 1; min-width: 120px; padding: 8px 12px; border: 1.5px solid #cbd5e1;
+                      border-radius: 8px; font-size: .88rem; font-family: inherit; }
+    .form-row label { display: flex; align-items: center; gap: 6px; font-size: .85rem; }
+    .btn-primary { background: #0ea5e9; color: #fff; border: none; border-radius: 8px;
+                   padding: 9px 20px; font-size: .88rem; font-family: inherit; cursor: pointer; }
+    .btn-primary:hover { background: #0284c7; }
+    .msg { margin-top: 10px; font-size: .85rem; padding: 8px 12px; border-radius: 8px; }
+    .msg.ok  { background: #dcfce7; color: #166534; }
+    .msg.err { background: #fee2e2; color: #b91c1c; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .logout-link { font-size: .82rem; color: #64748b; cursor: pointer; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="admin-wrap">
+    <div class="top-bar">
+      <div>
+        <h1>👑 用戶管理</h1>
+        <p class="sub">管理帳號與點數</p>
+      </div>
+      <span class="logout-link" onclick="doLogout()">登出</span>
+    </div>
+
+    <table id="users-table">
+      <thead>
+        <tr><th>帳號</th><th>名稱</th><th>身份</th><th>點數</th><th>操作</th></tr>
+      </thead>
+      <tbody id="users-body">
+        <tr><td colspan="5" style="color:#94a3b8">載入中…</td></tr>
+      </tbody>
+    </table>
+
+    <div class="add-card">
+      <h2>新增用戶</h2>
+      <div class="form-row">
+        <input id="new-username" placeholder="帳號 (英文/數字)" autocomplete="off">
+        <input id="new-password" placeholder="密碼" type="password">
+        <input id="new-display" placeholder="顯示名稱">
+        <input id="new-points" placeholder="點數" type="number" min="0" value="10" style="max-width:80px">
+        <label><input id="new-admin" type="checkbox"> 管理員</label>
+      </div>
+      <button class="btn-primary" onclick="createUser()">新增</button>
+      <div id="add-msg" class="msg" hidden></div>
+    </div>
+  </div>
+
+  <script>
+    async function loadUsers() {
+      const res = await fetch('/api/admin/users');
+      if (res.status === 401) { window.location.href = '/login.html'; return; }
+      if (res.status === 403) { document.body.innerHTML = '<p style="padding:40px;color:red">需要管理員權限</p>'; return; }
+      const users = await res.json();
+      const tbody = document.getElementById('users-body');
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td>${esc(u.username)}</td>
+          <td>${esc(u.display_name)}</td>
+          <td>${u.is_admin ? '<span class="badge-admin">管理員</span>' : '一般'}</td>
+          <td id="pts-${esc(u.username)}">${u.is_admin ? '—' : u.points}</td>
+          <td style="display:flex;gap:6px">
+            ${u.is_admin ? '' : `<button class="btn-sm btn-edit" onclick="editPoints('${esc(u.username)}', ${u.points})">改點數</button>`}
+            <button class="btn-sm btn-del" onclick="delUser('${esc(u.username)}')">刪除</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function editPoints(username, current) {
+      const val = prompt(`設定 ${username} 的點數（目前：${current}）`, current);
+      if (val === null) return;
+      const points = parseInt(val);
+      if (isNaN(points) || points < 0) { alert('請輸入有效的非負整數'); return; }
+      const res = await fetch(`/api/admin/users/${encodeURIComponent(username)}/points`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ points }),
+      });
+      if (res.ok) {
+        document.getElementById(`pts-${username}`).textContent = points;
+      } else {
+        alert((await res.json()).error || '更新失敗');
+      }
+    }
+
+    async function delUser(username) {
+      if (!confirm(`確定刪除用戶 ${username}？`)) return;
+      const res = await fetch(`/api/admin/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
+      res.ok ? loadUsers() : alert((await res.json()).error || '刪除失敗');
+    }
+
+    async function createUser() {
+      const msg = document.getElementById('add-msg');
+      const body = {
+        username:    document.getElementById('new-username').value.trim(),
+        password:    document.getElementById('new-password').value,
+        displayName: document.getElementById('new-display').value.trim(),
+        points:      parseInt(document.getElementById('new-points').value) || 0,
+        isAdmin:     document.getElementById('new-admin').checked,
+      };
+      if (!body.username || !body.password || !body.displayName) {
+        showMsg(msg, '請填寫所有必填欄位', 'err'); return;
+      }
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        showMsg(msg, `用戶 ${body.username} 已建立`, 'ok');
+        document.getElementById('new-username').value = '';
+        document.getElementById('new-password').value = '';
+        document.getElementById('new-display').value = '';
+        document.getElementById('new-points').value = '10';
+        document.getElementById('new-admin').checked = false;
+        loadUsers();
+      } else {
+        showMsg(msg, (await res.json()).error || '建立失敗', 'err');
+      }
+    }
+
+    function showMsg(el, text, type) {
+      el.textContent = text; el.className = `msg ${type}`; el.hidden = false;
+      setTimeout(() => { el.hidden = true; }, 4000);
+    }
+
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    async function doLogout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/login.html';
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>
