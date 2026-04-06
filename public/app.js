@@ -241,9 +241,18 @@ function buildCard(spot, f) {
   const stars      = f.rating ? renderStars(f.rating) : '—';
   const windDir    = f.wind_direction_deg != null ? degToArrow(f.wind_direction_deg) : '';
   const swellDir   = f.swell_direction_deg != null ? degToArrow(f.swell_direction_deg) : '';
-  const staleBanner = f.stale
-    ? `<div class="stale-banner">⚠️ ${f.stale_since ? `資料自 ${f.stale_since.slice(0, 10)} 起未更新` : '資料略舊'}</div>`
-    : '';
+  let staleBanner = '';
+  if (f.stale) {
+    const staleDays = f.stale_since
+      ? Math.floor((Date.now() - new Date(f.stale_since).getTime()) / 86400000)
+      : 0;
+    if (staleDays > 3) {
+      const sinceDate = f.stale_since.slice(0, 10);
+      staleBanner = `<div class="stale-banner stale-critical">🚨 資料中斷：自 ${sinceDate} 起已 ${staleDays} 天無更新，請改用 Swelleye 備援</div>`;
+    } else {
+      staleBanner = `<div class="stale-banner">⚠️ ${f.stale_since ? `資料自 ${f.stale_since.slice(0, 10)} 起未更新` : '資料略舊'}</div>`;
+    }
+  }
 
   const subSpotsHtml = spot.sub_spots?.length
     ? `<span class="sub-spots-tag">${spot.sub_spots.join(' · ')}</span>`
@@ -446,6 +455,52 @@ function showError(msg) {
   document.getElementById('cards').innerHTML = `<p class="error-state">⚠️ ${msg}</p>`;
 }
 
+// ── Chat Skill：地點偵測 ───────────────────────────────────────────────────────
+// 回傳 true 表示問題已有地點脈絡，可直接問 Claude
+// 回傳 false 表示沒有地點，顯示固定引導語句
+
+function hasLocationContext(question) {
+  // 明確提到浪點名稱或子地點
+  if (allSpots.some(s =>
+    question.includes(s.name) ||
+    (s.sub_spots ?? []).some(sub => question.includes(sub))
+  )) return true;
+
+  // 開放式問法（不需要指定浪點，Claude 可以統一比較回答）
+  const openKeywords = [
+    '哪個', '哪裡', '哪邊', '哪天',
+    '最好', '最佳', '最差', '最適合',
+    '推薦', '建議', '比較',
+    '初學者', '新手', '進階',
+    '全台', '全部', '所有',
+    '北台灣', '南台灣', '東海岸', '西海岸',
+    '東北', '東部', '南部', '北部',
+    '今天', '明天', '這週', '週末',
+    '幾點', '什麼時間', '最佳時',
+  ];
+  return openKeywords.some(k => question.includes(k));
+}
+
+function buildSpotChips(question) {
+  const wrap = document.createElement('div');
+  wrap.className = 'spot-chip-row';
+  allSpots.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'spot-chip-btn';
+    btn.textContent = s.name;
+    btn.onclick = () => {
+      const input = document.getElementById('chat-input');
+      // 把浪點名稱加在問題前面再送出
+      input.value = `${s.name} ${question}`.trim();
+      // 移除引導 UI
+      wrap.closest('.chat-msg')?.remove();
+      sendChat();
+    };
+    wrap.appendChild(btn);
+  });
+  return wrap;
+}
+
 // ── Chat Widget ───────────────────────────────────────────────────────────────
 
 window.chatKeydown = function (e) {
@@ -493,6 +548,18 @@ window.sendChat = async function () {
   sendBtn.disabled = false;
 
   appendChatMsg('user', question);
+
+  // ── Skill：沒有地點脈絡 → 固定引導語句，不呼叫 Claude ──
+  if (!hasLocationContext(question)) {
+    const guide = appendChatMsg('assistant', '你想查哪個浪點？點選一個，或在問題裡說地名：');
+    guide.appendChild(buildSpotChips(question));
+    input.disabled = false;
+    sendBtn.textContent = '送出';
+    sendBtn.onclick = sendChat;
+    input.focus();
+    return;
+  }
+
   const loading = appendChatMsg('assistant', '🌊 AI 思考中…');
 
   const controller = new AbortController();
