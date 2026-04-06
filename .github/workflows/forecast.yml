@@ -31,6 +31,7 @@ jobs:
       - name: Generate forecast JSON
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
           # 手動觸發時可覆寫日期；否則 JS 自己算明天 CST
           FORECAST_DATE: ${{ github.event.inputs.forecast_date }}
         run: node scripts/fetch-and-generate.js

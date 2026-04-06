@@ -22,11 +22,12 @@ import {
   setPoints, deductPoint, getUserInfo,
 } from './auth.js';
 
-const __dirname  = path.dirname(fileURLToPath(import.meta.url));
-const PUBLIC_DIR = path.join(__dirname, '..', 'public');
-const DATA_DIR   = path.join(PUBLIC_DIR, 'data');
-const SPOTS_FILE = path.join(PUBLIC_DIR, 'spots.json');
-const PORT       = process.env.PORT || 4000;
+const __dirname       = path.dirname(fileURLToPath(import.meta.url));
+const PUBLIC_DIR      = path.join(__dirname, '..', 'public');
+const DATA_DIR        = path.join(PUBLIC_DIR, 'data');
+const SPOTS_FILE      = path.join(PUBLIC_DIR, 'spots.json');
+const GLOSSARY_FILE   = path.join(DATA_DIR, 'glossary.json');
+const PORT            = process.env.PORT || 4000;
 
 const execFileAsync = promisify(execFile);
 const app = express();
@@ -142,12 +143,53 @@ app.delete('/api/admin/users/:username', requireAuth, requireAdmin, (req, res) =
   ok ? res.json({ ok: true }) : res.status(404).json({ error: '找不到該用戶' });
 });
 
+// ── Glossary admin routes ──────────────────────────────────────────────────────
+
+app.get('/api/admin/glossary', requireAuth, requireAdmin, (_req, res) => {
+  res.json(loadGlossary());
+});
+
+app.post('/api/admin/glossary', requireAuth, requireAdmin, (req, res) => {
+  const { term, definition } = req.body ?? {};
+  if (!term?.trim() || !definition?.trim())
+    return res.status(400).json({ error: '請填寫 term 和 definition' });
+  const list = loadGlossary();
+  if (list.some(g => g.term === term.trim()))
+    return res.status(409).json({ error: '術語已存在' });
+  list.push({ term: term.trim(), definition: definition.trim() });
+  saveGlossary(list);
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/glossary/:term', requireAuth, requireAdmin, (req, res) => {
+  const term = decodeURIComponent(req.params.term);
+  const list = loadGlossary();
+  const next = list.filter(g => g.term !== term);
+  if (next.length === list.length) return res.status(404).json({ error: '找不到該術語' });
+  saveGlossary(next);
+  res.json({ ok: true });
+});
+
 // ── 讀取浪點設定 ───────────────────────────────────────────────────────────────
 let spots = [];
 try {
   spots = JSON.parse(readFileSync(SPOTS_FILE, 'utf8'));
 } catch {
   console.warn('[server] spots.json not found');
+}
+
+// ── 術語表 ──────────────────────────────────────────────────────────────────────
+function loadGlossary() {
+  try { return JSON.parse(readFileSync(GLOSSARY_FILE, 'utf8')); } catch { return []; }
+}
+function saveGlossary(list) {
+  writeFileSync(GLOSSARY_FILE, JSON.stringify(list, null, 2), 'utf8');
+}
+function getGlossaryPrompt() {
+  const list = loadGlossary();
+  if (!list.length) return '';
+  const lines = list.map(g => `• ${g.term}：${g.definition}`).join('\n');
+  return `\n【在地衝浪術語（請在回答中優先使用這些說法）】\n${lines}\n`;
 }
 
 function getForecastData(slug) {
@@ -276,11 +318,12 @@ app.post('/api/chat', requireAuth, async (req, res) => {
   const todayCST = new Date(Date.now() + 8 * 3600_000).toISOString().slice(0, 10);
   const seasonalCtx = getSeasonalContext(todayCST);
 
+  const glossaryCtx = getGlossaryPrompt();
+
   const prompt = `你是台灣衝浪助理，用繁體中文回答，語氣親切實用，回答不超過 150 字。
 格式規定：純文字，不得使用 markdown、不得用星號（*）或井號（#）。回答必須以條列方式呈現，每個重點獨立一行，開頭用「•」符號，不寫大段落文字。
 數據規定：除非用戶明確詢問數字（如浪高、週期、風速），否則不要在回答中提及任何數值，只說結論和建議。${timeInstruction}
-${seasonalCtx}
-
+${seasonalCtx}${glossaryCtx}
 以下是最新資料：
 ${forecastContext}${ragContext}
 

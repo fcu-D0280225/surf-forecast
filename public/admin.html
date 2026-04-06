@@ -57,6 +57,30 @@
       </tbody>
     </table>
 
+    <!-- 術語表 -->
+    <div class="add-card" style="margin-top:28px">
+      <h2>在地術語表</h2>
+      <p style="font-size:.82rem;color:#64748b;margin-bottom:14px">AI 回答時會優先使用這些說法</p>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+        <thead>
+          <tr>
+            <th style="background:#0ea5e9;color:#fff;text-align:left;padding:8px 12px;font-size:.82rem">術語</th>
+            <th style="background:#0ea5e9;color:#fff;text-align:left;padding:8px 12px;font-size:.82rem">定義</th>
+            <th style="background:#0ea5e9;color:#fff;padding:8px 12px;font-size:.82rem;width:60px"></th>
+          </tr>
+        </thead>
+        <tbody id="glossary-body">
+          <tr><td colspan="3" style="padding:10px 12px;color:#94a3b8;font-size:.85rem">載入中…</td></tr>
+        </tbody>
+      </table>
+      <div class="form-row">
+        <input id="new-term" placeholder="術語（例：孝順浪）" style="max-width:160px">
+        <input id="new-def"  placeholder="定義（例：適合新手的小而規律的浪）">
+      </div>
+      <button class="btn-primary" onclick="addGlossary()">新增術語</button>
+      <div id="glossary-msg" class="msg" hidden></div>
+    </div>
+
     <div class="add-card">
       <h2>新增用戶</h2>
       <div class="form-row">
@@ -157,7 +181,54 @@
       window.location.href = '/login.html';
     }
 
+    async function loadGlossary() {
+      const res = await fetch('/api/admin/glossary');
+      if (!res.ok) return;
+      const list = await res.json();
+      const tbody = document.getElementById('glossary-body');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="3" style="padding:10px 12px;color:#94a3b8;font-size:.85rem">尚無術語</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(g => `
+        <tr>
+          <td style="padding:9px 12px;font-size:.88rem;font-weight:600;border-bottom:1px solid #f1f5f9">${esc(g.term)}</td>
+          <td style="padding:9px 12px;font-size:.85rem;color:#475569;border-bottom:1px solid #f1f5f9">${esc(g.definition)}</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #f1f5f9">
+            <button class="btn-sm btn-del" onclick="delGlossary('${esc(g.term)}')">刪除</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function addGlossary() {
+      const msg  = document.getElementById('glossary-msg');
+      const term = document.getElementById('new-term').value.trim();
+      const def  = document.getElementById('new-def').value.trim();
+      if (!term || !def) { showMsg(msg, '請填寫術語和定義', 'err'); return; }
+      const res = await fetch('/api/admin/glossary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ term, definition: def }),
+      });
+      if (res.ok) {
+        showMsg(msg, `「${term}」已新增`, 'ok');
+        document.getElementById('new-term').value = '';
+        document.getElementById('new-def').value  = '';
+        loadGlossary();
+      } else {
+        showMsg(msg, (await res.json()).error || '新增失敗', 'err');
+      }
+    }
+
+    async function delGlossary(term) {
+      if (!confirm(`刪除術語「${term}」？`)) return;
+      const res = await fetch(`/api/admin/glossary/${encodeURIComponent(term)}`, { method: 'DELETE' });
+      res.ok ? loadGlossary() : alert('刪除失敗');
+    }
+
     loadUsers();
+    loadGlossary();
   </script>
 </body>
 </html>
