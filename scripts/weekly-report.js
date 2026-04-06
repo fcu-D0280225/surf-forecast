@@ -11,9 +11,34 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import Anthropic from '@anthropic-ai/sdk';
 import { getSeasonalContext } from '../src/forecast-utils.js';
 
 const execFileAsync = promisify(execFile);
+
+const sdkClient = process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null;
+
+async function callClaudeRaw(prompt) {
+  if (sdkClient) {
+    const msg = await sdkClient.messages.create({
+      model:      'claude-opus-4-5',
+      max_tokens: 1024,
+      messages:   [{ role: 'user', content: prompt }],
+    });
+    return msg.content[0]?.text ?? '';
+  }
+  const { stdout } = await execFileAsync('claude', [
+    '--print', prompt,
+    '--output-format', 'json',
+    '--disallowed-tools', 'Bash,Edit,Write,Read,Glob,Grep,Agent',
+  ], { timeout: 90_000 });
+  const envelope = JSON.parse(stdout);
+  if (envelope.type !== 'result' || envelope.subtype !== 'success')
+    throw new Error(`CLI: ${envelope.subtype}`);
+  return envelope.result ?? '';
+}
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const ROOT       = path.resolve(__dirname, '..');
 const DATA_DIR   = path.join(ROOT, 'public', 'data');
@@ -119,24 +144,15 @@ ${daysText}
   ]
 }`;
 
-  let stdout;
+  let resultText;
   try {
-    const result = await execFileAsync('claude', [
-      '--print', prompt,
-      '--output-format', 'json',
-      '--disallowed-tools', 'Bash,Edit,Write,Read,Glob,Grep,Agent',
-    ], { timeout: 90_000 });
-    stdout = result.stdout;
+    resultText = await callClaudeRaw(prompt);
   } catch (err) {
     console.error(`[weekly] Claude error for ${region}:`, err.message?.slice(0, 200));
     return null;
   }
 
-  let envelope;
-  try { envelope = JSON.parse(stdout); } catch { return null; }
-  if (envelope.type !== 'result' || envelope.subtype !== 'success') return null;
-
-  const jsonMatch = (envelope.result ?? '').match(/\{[\s\S]*\}/);
+  const jsonMatch = (resultText ?? '').match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
   try { return JSON.parse(jsonMatch[0]); } catch { return null; }
 }

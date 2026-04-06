@@ -308,8 +308,39 @@ export async function fetchTides(stationName, date) {
 
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import Anthropic from '@anthropic-ai/sdk';
 
 const execFileAsync = promisify(execFile);
+
+// SDK client（有 ANTHROPIC_API_KEY 才初始化）
+const sdkClient = process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null;
+
+async function callClaudeRaw(prompt) {
+  // 有 API key → 走 SDK（GitHub Actions）
+  if (sdkClient) {
+    const msg = await sdkClient.messages.create({
+      model:      'claude-opus-4-5',
+      max_tokens: 1024,
+      messages:   [{ role: 'user', content: prompt }],
+    });
+    return msg.content[0]?.text ?? '';
+  }
+
+  // 無 API key → fallback 到本機 Claude Code CLI
+  const { stdout } = await execFileAsync('claude', [
+    '--print', prompt,
+    '--output-format', 'json',
+    '--disallowed-tools', 'Bash,Edit,Write,Read,Glob,Grep,Agent',
+  ], { timeout: 60_000 });
+
+  const envelope = JSON.parse(stdout);
+  if (envelope.type !== 'result' || envelope.subtype !== 'success') {
+    throw new Error(`Claude CLI: ${envelope.subtype}`);
+  }
+  return envelope.result ?? '';
+}
 
 // ── Seasonal / Weather Context ────────────────────────────────────────────────
 export function getSeasonalContext(dateStr) {
@@ -359,34 +390,13 @@ ${seasonalCtx}
   "notes": "注意事項，包含季節/颱風/季風提醒（如無則輸出 null）"
 }`;
 
-  let stdout;
+  let resultText;
   try {
-    const result = await execFileAsync('claude', [
-      '--print', prompt,
-      '--output-format', 'json',
-      '--disallowed-tools', 'Bash,Edit,Write,Read,Glob,Grep,Agent',
-    ], { timeout: 60_000 });
-    stdout = result.stdout;
+    resultText = await callClaudeRaw(prompt);
   } catch (err) {
-    console.error('[Claude CLI] error:', err.message?.slice(0, 200));
-    return { stale: true, stale_reason: 'cli_error' };
+    console.error('[Claude] error:', err.message?.slice(0, 200));
+    return { stale: true, stale_reason: 'claude_error' };
   }
-
-  // Parse the CLI JSON envelope
-  let envelope;
-  try {
-    envelope = JSON.parse(stdout);
-  } catch {
-    console.error('[Claude CLI] envelope parse failed:', stdout?.slice(0, 200));
-    return { stale: true, stale_reason: 'envelope_parse_error' };
-  }
-
-  if (envelope.type !== 'result' || envelope.subtype !== 'success') {
-    console.error('[Claude CLI] unexpected result:', envelope.type, envelope.subtype);
-    return { stale: true, stale_reason: `cli_${envelope.subtype ?? 'unknown'}` };
-  }
-
-  const resultText = envelope.result ?? '';
 
   // Extract JSON (may be wrapped in markdown code fences)
   const jsonMatch = resultText.match(/\{[\s\S]*\}/);
