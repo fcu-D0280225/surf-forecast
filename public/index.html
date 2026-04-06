@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>台灣衝浪預報</title>
+  <title>城市浪人</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0077b6">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="衝浪預報">
+  <meta name="apple-mobile-web-app-title" content="城市浪人">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -20,11 +20,12 @@
     <header>
       <div class="header-main">
         <div>
-          <h1>🏄 台灣衝浪預報</h1>
+          <h1>🏄 城市浪人</h1>
           <p class="subtitle" id="forecast-date">載入中…</p>
         </div>
         <div class="header-actions">
           <span class="points-badge" id="points-badge" hidden></span>
+          <button class="refresh-btn" id="refresh-btn" onclick="doRefresh()" aria-label="重新整理">🔄</button>
           <button class="spot-toggle-btn" id="spot-toggle-btn" onclick="toggleSpotSelector()" aria-label="選擇浪點">
             ⚙️ 選擇浪點
           </button>
@@ -83,7 +84,7 @@
     <!-- ── Weekly Report Section ────────────────────────────────────────────── -->
     <section class="weekly-section" id="weekly-section" hidden>
       <button class="browse-toggle" onclick="toggleWeekly()">
-        <span>📅 本週區域浪況預報</span>
+        <span>📅 週末浪況預報（五六日）</span>
         <span class="browse-chevron" id="weekly-chevron">▼</span>
       </button>
       <div id="weekly-body" hidden>
@@ -101,8 +102,12 @@
       <div class="report-done" id="report-done" hidden>✅ 已記錄，謝謝回報！</div>
     </section>
 
-  </div>
+    <!-- ── Footer ──────────────────────────────────────────────────────────── -->
+    <footer class="app-footer">
+      <a href="/about.html">城市浪人是什麼？查看特色 →</a>
+    </footer>
 
+  </div>
 
   <script src="app.js" type="module"></script>
 </body>

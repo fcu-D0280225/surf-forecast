@@ -249,6 +249,59 @@ export async function fetchMarineData(lat, lon, date) {
   };
 }
 
+// ── Fetch Tides (CWA 中央氣象署 F-A0021-001) ─────────────────────────────────
+// Requires env: CWA_API_KEY (free registration at opendata.cwa.gov.tw)
+// Returns array of { time: "HH:MM", type: "high"|"low", height_m: number }
+// or null if API key not set / request fails (non-blocking).
+
+export async function fetchTides(stationName, date) {
+  const apiKey = process.env.CWA_API_KEY;
+  if (!apiKey) {
+    console.warn('[tides] CWA_API_KEY not set, skipping');
+    return null;
+  }
+
+  const url = new URL('https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-A0021-001');
+  url.searchParams.set('Authorization', apiKey);
+  url.searchParams.set('StationName',   stationName);
+  url.searchParams.set('timeFrom',      `${date}T00:00:00`);
+  url.searchParams.set('timeTo',        `${date}T23:59:59`);
+
+  try {
+    const res = await fetch(url.toString(), { signal: AbortSignal.timeout(15_000) });
+    if (!res.ok) {
+      console.warn(`[tides] CWA ${res.status} for ${stationName}`);
+      return null;
+    }
+    const data = await res.json();
+
+    // F-A0021-001 response shape (may vary by API version — parse defensively)
+    const forecasts = data?.result?.records?.TideForecasts ?? data?.records?.TideForecasts;
+    if (!Array.isArray(forecasts) || forecasts.length === 0) {
+      console.warn(`[tides] no forecast records for ${stationName}`);
+      return null;
+    }
+
+    const times = forecasts[0]?.Location?.TimePeriod?.Time ?? [];
+    if (!times.length) return null;
+
+    const entries = times.map(t => {
+      const dt     = t.DateTime ?? '';
+      const time   = dt.length >= 16 ? dt.slice(11, 16) : null;
+      const type   = t.TideRange === 'H' ? 'high' : 'low';
+      const raw    = t.TideHeights?.AboveTWVD ?? t.TideHeights?.AboveChartDatum ?? null;
+      const height = raw != null ? Math.round(parseFloat(raw) * 100) / 100 : null;
+      return time ? { time, type, height_m: height } : null;
+    }).filter(Boolean);
+
+    console.log(`[tides] ${stationName} — ${entries.length} entries`);
+    return entries.length ? entries : null;
+  } catch (err) {
+    console.warn(`[tides] fetch error for ${stationName}: ${err.message}`);
+    return null;
+  }
+}
+
 // ── Claude CLI Call ───────────────────────────────────────────────────────────
 // Uses `claude --print` subprocess (reuses Claude Code CLI auth, no API key needed).
 // Returns { stale, stale_reason } on failure or { stale:false, rating, summary, notes } on success.
@@ -272,6 +325,14 @@ export function getSeasonalContext(dateStr) {
 
 export async function callClaude(data, spotLabel, spotDesc) {
   const seasonalCtx = getSeasonalContext(data.date);
+
+  const tideStr = (() => {
+    if (!data.tides?.length) return '未取得';
+    return data.tides.map(t =>
+      `${t.type === 'high' ? '高潮' : '低潮'} ${t.time}${t.height_m != null ? ` (${t.height_m}m)` : ''}`
+    ).join(' / ');
+  })();
+
   const prompt = `你是台灣衝浪預報助理。你的回覆必須只包含 JSON，不可有任何說明文字或 markdown。
 
 ${seasonalCtx}
@@ -289,6 +350,7 @@ ${seasonalCtx}
 - 湧浪純淨比：${data.swell_ratio != null ? Math.round(data.swell_ratio * 100) + '%（越高越乾淨）' : '未知'}
 - 模型預報共識：${data.wind_model_spread_ms != null ? `各模型風速差 ${data.wind_model_spread_ms} m/s（>4 表示預報不確定）` : '未取得'}
 - 數據信心度（供參考，請反映在建議中）：${data.confidence}
+- 潮汐：${tideStr}
 
 請輸出 JSON，不要有任何說明文字或 markdown：
 {

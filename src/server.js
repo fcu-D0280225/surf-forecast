@@ -44,6 +44,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// sw.js 不可被 HTTP 快取，否則瀏覽器不會偵測到新版本
+app.get('/sw.js', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.join(PUBLIC_DIR, 'sw.js'));
+});
+
 app.use(express.static(PUBLIC_DIR));
 
 // ── Auth helpers ───────────────────────────────────────────────────────────────
@@ -236,8 +242,15 @@ app.post('/api/chat', requireAuth, async (req, res) => {
       const subSpotsNote = s.sub_spots?.length
         ? `（含：${s.sub_spots.join('、')}）`
         : '';
+      const tideNote = (() => {
+        if (!f.tides?.length) return '';
+        const parts = f.tides.map(t =>
+          `${t.type === 'high' ? '高潮' : '低潮'}${t.time}${t.height_m != null ? `(${t.height_m}m)` : ''}`
+        ).join('/');
+        return `，潮汐：${parts}`;
+      })();
       forecastContext += `• ${s.name}${subSpotsNote}：${f.rating}星 — ${f.summary}`;
-      forecastContext += `（湧浪${f.swell_height_m}m/${f.swell_period_s}s，風速${f.wind_speed_ms}m/s，最佳時窗${f.best_window_start}–${f.best_window_end}）\n`;
+      forecastContext += `（湧浪${f.swell_height_m}m/${f.swell_period_s}s，風速${f.wind_speed_ms}m/s，最佳時窗${f.best_window_start}–${f.best_window_end}${tideNote}）\n`;
     }
   }
 
@@ -335,7 +348,7 @@ const dataFiles = spots.map(s => {
 
 app.listen(PORT, () => {
   console.log('');
-  console.log('🌊 台灣衝浪助手');
+  console.log('🏄 城市浪人');
   console.log(`   http://localhost:${PORT}`);
   console.log(`   浪點資料：${spots.length} 個浪點`);
   dataFiles.forEach(l => console.log(l));

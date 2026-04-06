@@ -24,3 +24,9 @@
 **Cons:** API 較複雜（async）；需要重寫讀寫邏輯。
 **Context:** MVP 接受 localStorage 的限制（失去回饋不影響核心功能）。升級至 Cloudflare KV 可同時實現跨裝置同步。
 **Depends on:** 先確認 MVP 使用量值得投資再升級。
+
+### TODO-ENG-003: 設定每日 cron 自動更新預報資料
+**What:** `scripts/fetch-and-generate.js` 目前需要手動執行，沒有自動排程。
+**Why:** 如果 `public/data/*.json` 超過 24 小時沒更新，app 的 Claude 回答就退化回「沒有資料的亂猜」，差異化完全消失。
+**Action:** 設定 GitHub Actions workflow，每天台灣時間凌晨 2:00（UTC 18:00）執行 `node scripts/fetch-and-generate.js`，並在失敗時發 email/通知。
+**Depends on:** `ANTHROPIC_API_KEY` secret 寫入 GitHub repo settings。

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>城市浪人 — 特色</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0077b6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ocean:  #0077b6;
+      --sky:    #0ea5e9;
+      --foam:   #e0f2fe;
+      --deep:   #0f172a;
+      --ink:    #1e293b;
+      --muted:  #64748b;
+      --border: #e2e8f0;
+      --radius: 16px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: #f8fafc;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(160deg, var(--deep) 0%, #0c2a4a 60%, #0d3a5c 100%);
+      color: #fff;
+      padding: 64px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0; right: 0;
+      height: 48px;
+      background: #f8fafc;
+      clip-path: ellipse(55% 100% at 50% 100%);
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(14,165,233,.25);
+      color: var(--sky);
+      border: 1px solid rgba(14,165,233,.4);
+      border-radius: 99px;
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      padding: 4px 14px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 900;
+      letter-spacing: -.02em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, #38bdf8, #7dd3fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      max-width: 380px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+    .hero-cta {
+      display: inline-block;
+      background: var(--sky);
+      color: #fff;
+      font-size: .95rem;
+      font-weight: 700;
+      padding: 13px 32px;
+      border-radius: 99px;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .hero-cta:hover { background: #0284c7; }
+
+    /* ── Section wrapper ── */
+    .section { max-width: 600px; margin: 0 auto; padding: 48px 20px; }
+    .section-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--sky);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .section h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    /* ── Feature cards ── */
+    .features { display: flex; flex-direction: column; gap: 16px; }
+
+    .feat {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      transition: box-shadow .15s, transform .15s;
+    }
+    .feat:hover {
+      box-shadow: 0 4px 24px rgba(0,119,182,.10);
+      transform: translateY(-2px);
+    }
+    .feat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .feat-body h3 {
+      font-size: .97rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .feat-body p {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .feat-body .tag {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-top: 6px;
+    }
+
+    /* icon bg colors */
+    .ic-blue   { background: #e0f2fe; }
+    .ic-purple { background: #f3e8ff; }
+    .ic-teal   { background: #ccfbf1; }
+    .ic-amber  { background: #fef3c7; }
+    .ic-rose   { background: #ffe4e6; }
+    .ic-green  { background: #dcfce7; }
+    .ic-indigo { background: #e0e7ff; }
+
+    /* tag colors */
+    .tag-blue   { background: #dbeafe; color: #1d4ed8; }
+    .tag-purple { background: #ede9fe; color: #6d28d9; }
+    .tag-teal   { background: #ccfbf1; color: #0f766e; }
+    .tag-amber  { background: #fef3c7; color: #92400e; }
+    .tag-indigo { background: #e0e7ff; color: #3730a3; }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 0 20px; }
+
+    /* ── Spots strip ── */
+    .spots-section { background: var(--deep); padding: 48px 20px; }
+    .spots-section .section-label { color: #38bdf8; }
+    .spots-section h2 { color: #fff; }
+    .spots-section .section-sub { color: #94a3b8; margin-bottom: 24px; }
+    .spots-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .spot-chip {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      color: #cbd5e1;
+      font-size: .82rem;
+      padding: 6px 14px;
+      border-radius: 99px;
+    }
+
+    /* ── How it works ── */
+    .steps { display: flex; flex-direction: column; gap: 0; }
+    .step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--sky);
+      color: #fff;
+      font-size: .85rem;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step h4 { font-size: .95rem; font-weight: 700; margin-bottom: 3px; }
+    .step p  { font-size: .83rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── CTA footer ── */
+    .cta-footer {
+      text-align: center;
+      padding: 56px 24px 72px;
+      background: linear-gradient(160deg, #f0f9ff, #e0f2fe);
+    }
+    .cta-footer h2 { font-size: 1.6rem; font-weight: 900; margin-bottom: 10px; }
+    .cta-footer p  { color: var(--muted); margin-bottom: 28px; font-size: .92rem; }
+    .cta-btn {
+      display: inline-block;
+      background: var(--ocean);
+      color: #fff;
+      font-size: .95rem;
+      font-weight: 700;
+      padding: 14px 36px;
+      border-radius: 99px;
+      text-decoration: none;
+    }
+    .cta-btn:hover { background: #005f94; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: rgba(15,23,42,.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+    .nav-brand { color: #fff; font-weight: 800; font-size: .97rem; text-decoration: none; }
+    .nav-link  { color: #94a3b8; font-size: .82rem; text-decoration: none; }
+    .nav-link:hover { color: #fff; }
+
+    .hero { padding-top: 104px; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-brand" href="/">🏄 城市浪人</a>
+    <a class="nav-link" href="/">進入 App →</a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">Taiwan Surf Intelligence</div>
+    <h1>今天哪裡有浪，<br><em>直接問就好</em></h1>
+    <p>結合即時氣象預報、AI 解讀與在地回報，讓你不用看天書數字也能做出衝浪決策。</p>
+    <a class="hero-cta" href="/">開始使用</a>
+  </section>
+
+  <!-- Features -->
+  <div class="section">
+    <p class="section-label">核心特色</p>
+    <h2>不只是天氣 App</h2>
+    <p class="section-sub">城市浪人把氣象數據、AI 分析和真實衝浪客的回饋整合在一起，給你一個問答就能決定要不要出門的答案。</p>
+
+    <div class="features">
+
+      <div class="feat">
+        <div class="feat-icon ic-blue">🌊</div>
+        <div class="feat-body">
+          <h3>即時預報，每日自動更新</h3>
+          <p>每天自動從 open-meteo 拉取各浪點的湧浪高度、週期、風速，不用自己查表複製貼上。</p>
+          <span class="tag tag-blue">每日 cron 更新</span>
+        </div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon ic-purple">🤖</div>
+        <div class="feat-body">
+          <h3>AI 解讀，說人話</h3>
+          <p>問「今天礁崎好嗎」就直接得到「早上8點前不錯，下午風太強」，不是丟給你一堆公尺和秒數。</p>
+          <span class="tag tag-purple">Claude AI</span>
+        </div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon ic-teal">📊</div>
+        <div class="feat-body">
+          <h3>三模型共識，有信心才推薦</h3>
+          <p>同時比對 ECMWF、GFS、ICON 三套氣象模型的預報，模型意見不一時主動告訴你「今天預報不確定，保守出發」。</p>
+          <span class="tag tag-teal">高/中/低 信心度</span>
+        </div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon ic-amber">🌙</div>
+        <div class="feat-body">
+          <h3>潮汐整合</h3>
+          <p>對應中央氣象署潮位站，AI 分析時會把高低潮時間一起考慮進去，讓最佳時窗建議更準確。</p>
+          <span class="tag tag-amber">CWA 官方資料</span>
+        </div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon ic-rose">🗣️</div>
+        <div class="feat-body">
+          <h3>在地回報，AI 會讀</h3>
+          <p>衝浪客可以回報即時浪況，這些真實文字會被 AI 當作最新資訊參考，補足氣象數據看不到的細節。</p>
+        </div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon ic-indigo">📅</div>
+        <div class="feat-body">
+          <h3>週末預報，禮拜四就知道</h3>
+          <p>每週自動產出週五至週日三天的浪況預測，讓你提早安排行程，不用等到週五早上才決定要不要出發。</p>
+          <span class="tag tag-indigo">週五 ＋ 週六 ＋ 週日</span>
+        </div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon ic-green">📱</div>
+        <div class="feat-body">
+          <h3>手機 App，加到主畫面</h3>
+          <p>PWA 設計，加到手機主畫面後就像原生 App，出門前十秒問完出發。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- How it works -->
+  <div class="section">
+    <p class="section-label">運作方式</p>
+    <h2>三步驟，問完出門</h2>
+    <p class="section-sub">設計給在城市生活、偶爾想衝浪的人——不需要是氣象專家。</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h4>打開 App，直接問</h4>
+          <p>「今天東北角好不好？」「我是初學者，哪裡適合？」「明天幾點最好下水？」用白話文問。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h4>AI 讀資料，給建議</h4>
+          <p>後台整合了當日湧浪、風速、潮汐、在地回報，Claude 把這些數據變成具體的時段建議。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h4>決定要不要出發</h4>
+          <p>得到一個乾淨的答案，判斷今天值不值得翻出衝浪板。回來後也可以回報浪況給下一個人參考。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spots -->
+  <section class="spots-section">
+    <div class="section">
+      <p class="section-label">涵蓋範圍</p>
+      <h2>全台 12 個主要浪點</h2>
+      <p class="section-sub">從礁崎到墾丁，東西海岸都有，每天更新。</p>
+      <div class="spots-grid">
+        <span class="spot-chip">🗺 東北角</span>
+        <span class="spot-chip">🗺 礁崎</span>
+        <span class="spot-chip">🗺 石門洞</span>
+        <span class="spot-chip">🗺 花蓮</span>
+        <span class="spot-chip">🗺 磯崎</span>
+        <span class="spot-chip">🗺 松柏港</span>
+        <span class="spot-chip">🗺 成功</span>
+        <span class="spot-chip">🗺 東河</span>
+        <span class="spot-chip">🗺 台東</span>
+        <span class="spot-chip">🗺 佳樂水</span>
+        <span class="spot-chip">🗺 墾丁南灣</span>
+        <span class="spot-chip">🗺 魚光島</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-footer">
+    <h2>今天有浪嗎？</h2>
+    <p>問一下就知道，不用猜。</p>
+    <a class="cta-btn" href="/">開始使用城市浪人</a>
+  </section>
+
+</body>
+</html>

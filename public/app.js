@@ -18,6 +18,7 @@ let allSpots    = [];   // from /spots.json
 let forecasts   = {};   // slug → forecast JSON
 let selected    = [];   // slugs user wants to see
 let currentUser = null; // { username, displayName, isAdmin, points }
+let lastLoadedAt = 0;   // timestamp of last forecast fetch
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 async function checkAuth() {
@@ -74,6 +75,32 @@ async function init() {
   renderAccuracy();
   await loadWeeklyReport();
 }
+
+// ── Refresh ───────────────────────────────────────────────────────────────────
+const REFRESH_INTERVAL_MS = 10 * 60 * 1000; // 10 分鐘內不重複抓
+
+async function refreshForecasts() {
+  const btn = document.getElementById('refresh-btn');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+  try {
+    await loadForecasts();
+    renderCards();
+    renderAccuracy();
+    await loadWeeklyReport();
+  } finally {
+    if (btn) { btn.textContent = '🔄'; btn.disabled = false; }
+  }
+}
+
+window.doRefresh = refreshForecasts;
+
+// 切回頁面超過 10 分鐘才自動刷新
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' &&
+      Date.now() - lastLoadedAt > REFRESH_INTERVAL_MS) {
+    refreshForecasts();
+  }
+});
 
 // ── Spot Selector ─────────────────────────────────────────────────────────────
 function buildSpotSelector() {
@@ -153,6 +180,8 @@ async function loadForecasts() {
       forecasts[allSpots[i].slug] = null; // no data yet
     }
   });
+
+  lastLoadedAt = Date.now();
 
   // Update header date
   const dates = Object.values(forecasts).filter(Boolean).map(f => f.date);
@@ -337,9 +366,17 @@ async function loadWeeklyReport() {
   section.hidden = false;
 
   const genDate = report.generated_at?.slice(0, 10) ?? '';
+  // Find the upcoming Friday date from the report data
+  const weekendDays = [5, 6, 0]; // Fri, Sat, Sun
+  const allRatings  = (report.regions ?? [])[0]?.daily_ratings ?? [];
+  const fridayEntry = allRatings.find(d => new Date(d.date + 'T00:00:00').getDay() === 5);
+  const sundayEntry = allRatings.filter(d => new Date(d.date + 'T00:00:00').getDay() === 0).pop();
+  const rangeLabel  = fridayEntry && sundayEntry
+    ? `${fridayEntry.date.slice(5)} (五) ~ ${sundayEntry.date.slice(5)} (日)`
+    : `${report.week_start} ~ ${report.week_end}`;
+
   meta.innerHTML = `
-    <span class="weekly-range">📅 ${report.week_start} ~ ${report.week_end}</span>
-    ${report.seasonal_context ? `<span class="weekly-season">${report.seasonal_context}</span>` : ''}
+    <span class="weekly-range">📅 ${rangeLabel}</span>
     <span class="weekly-gen">（更新：${genDate}）</span>
   `;
 
@@ -364,7 +401,11 @@ function buildWeeklyRegionCard(r) {
     return div;
   }
 
-  const dailyHtml = (r.daily_ratings ?? []).map(d => {
+  const WEEKEND = new Set([5, 6, 0]); // Fri, Sat, Sun
+  const weekendRatings = (r.daily_ratings ?? []).filter(d =>
+    WEEKEND.has(new Date(d.date + 'T00:00:00').getDay())
+  );
+  const dailyHtml = weekendRatings.map(d => {
     const stars = d.rating ? renderStars(d.rating) : '—';
     return `
       <div class="weekly-day">

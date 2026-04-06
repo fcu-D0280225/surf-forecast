@@ -1,5 +1,5 @@
 /* Service Worker — 台灣衝浪預報 PWA */
-const CACHE_SHELL    = 'surf-shell-v3';
+const CACHE_SHELL    = 'surf-shell-v4';
 const CACHE_FORECAST = 'surf-forecast-v1';
 const MAX_AGE_FORECAST = 24 * 60 * 60; // 24h in seconds
 

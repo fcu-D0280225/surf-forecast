@@ -1,7 +1,7 @@
 {
-  "name": "台灣衝浪助手",
-  "short_name": "衝浪助手",
-  "description": "查浪況、記紀錄、問問題，隨時隨地掌握台灣衝浪資訊",
+  "name": "城市浪人",
+  "short_name": "城市浪人",
+  "description": "台灣衝浪預報 × AI 解讀，問就知道今天哪裡有浪",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -22,7 +22,7 @@
     {
       "name": "今日預報",
       "short_name": "預報",
-      "description": "查看明天各浪點預報",
+      "description": "查看各浪點今日預報",
       "url": "/"
     },
     {

@@ -11,7 +11,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import { fetchMarineData, callClaude } from '../src/forecast-utils.js';
+import { fetchMarineData, callClaude, fetchTides } from '../src/forecast-utils.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.resolve(__dirname, '..');
@@ -47,6 +47,11 @@ async function processSpot(spot) {
     try { existing = JSON.parse(readFileSync(outFile, 'utf8')); } catch {}
   }
 
+  // 潮汐與海象並行抓取
+  const tidesPromise = spot.tide_station
+    ? fetchTides(spot.tide_station, targetDate).catch(() => null)
+    : Promise.resolve(null);
+
   let weatherData;
   try {
     weatherData = await fetchMarineData(spot.lat, spot.lon, targetDate);
@@ -65,6 +70,10 @@ async function processSpot(spot) {
     writeFileSync(outFile, JSON.stringify(output, null, 2));
     return;
   }
+
+  // 等潮汐結果（marine 已完成，tide 可能還在跑）
+  const tides = await tidesPromise;
+  weatherData.tides = tides;
 
   // Claude
   const claude = await callClaude(weatherData, spot.name, spot.description);
@@ -93,6 +102,7 @@ async function processSpot(spot) {
         rating:              existing.rating,
         summary:             existing.summary,
         notes:               existing.notes,
+        tides:               existing.tides ?? null,
       } : {}),
     };
     writeFileSync(outFile, JSON.stringify(output, null, 2));
@@ -112,11 +122,12 @@ async function processSpot(spot) {
     wind_wave_height_m:  weatherData.wind_wave_height_m,
     wind_speed_ms:       weatherData.wind_speed_ms,
     wind_direction_deg:  weatherData.wind_direction_deg,
-    best_window_start:      weatherData.best_window_start,
-    best_window_end:        weatherData.best_window_end,
-    swell_ratio:            weatherData.swell_ratio,
-    wind_model_spread_ms:   weatherData.wind_model_spread_ms,
-    confidence:             weatherData.confidence,
+    best_window_start:   weatherData.best_window_start,
+    best_window_end:     weatherData.best_window_end,
+    swell_ratio:         weatherData.swell_ratio,
+    wind_model_spread_ms: weatherData.wind_model_spread_ms,
+    confidence:          weatherData.confidence,
+    tides:               tides ?? null,
     rating:              claude.rating,
     summary:             claude.summary,
     notes:               claude.notes,
