@@ -11,24 +11,11 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import Anthropic from '@anthropic-ai/sdk';
 import { getSeasonalContext } from '../src/forecast-utils.js';
 
 const execFileAsync = promisify(execFile);
 
-const sdkClient = process.env.ANTHROPIC_API_KEY
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  : null;
-
 async function callClaudeRaw(prompt) {
-  if (sdkClient) {
-    const msg = await sdkClient.messages.create({
-      model:      'claude-opus-4-5',
-      max_tokens: 1024,
-      messages:   [{ role: 'user', content: prompt }],
-    });
-    return msg.content[0]?.text ?? '';
-  }
   const { stdout } = await execFileAsync('claude', [
     '--print', prompt,
     '--output-format', 'json',

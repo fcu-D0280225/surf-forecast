@@ -308,27 +308,10 @@ export async function fetchTides(stationName, date) {
 
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import Anthropic from '@anthropic-ai/sdk';
 
 const execFileAsync = promisify(execFile);
 
-// SDK client（有 ANTHROPIC_API_KEY 才初始化）
-const sdkClient = process.env.ANTHROPIC_API_KEY
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  : null;
-
 async function callClaudeRaw(prompt) {
-  // 有 API key → 走 SDK（GitHub Actions）
-  if (sdkClient) {
-    const msg = await sdkClient.messages.create({
-      model:      'claude-opus-4-5',
-      max_tokens: 1024,
-      messages:   [{ role: 'user', content: prompt }],
-    });
-    return msg.content[0]?.text ?? '';
-  }
-
-  // 無 API key → fallback 到本機 Claude Code CLI
   const { stdout } = await execFileAsync('claude', [
     '--print', prompt,
     '--output-format', 'json',
