@@ -1,0 +1,9 @@
+node_modules/
+.git/
+data/
+.env*
+.DS_Store
+*.log
+.gstack/
+.cache/
+tests/

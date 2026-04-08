@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      # SQLite 資料庫（用戶帳號、回報）— 容器重建後保留
+      - ./data:/app/data
+      # 預報 JSON — host 端 git pull 後立即生效，不需重啟
+      - ./public/data:/app/public/data
+    environment:
+      PORT: 4000
+      CWA_API_KEY: ${CWA_API_KEY:-}
