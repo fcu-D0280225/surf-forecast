@@ -2,3 +2,4 @@ node_modules/
 data/*.sqlite
 .cache/
 .gstack/
+.env.deploy
