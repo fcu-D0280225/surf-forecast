@@ -352,7 +352,7 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
 
 /* ── Loading ─────────────────────────────────────────────── */
 .loading { text-align: center; padding: 48px 0; color: var(--muted); }
-.loading-wave { font-size: 2.5rem; animation: bob .8s ease-in-out infinite alternate; display: block; margin-bottom: 8px; }
+.loading-wave { font-size: 2.5rem; animation: bob .8s ease-in-out infinite alternate; display: block; margin-bottom: 8px; color: var(--ocean); }
 @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-10px); } }
 .empty-state, .no-data { text-align: center; color: var(--muted); padding: 32px; font-size: .88rem; }
 

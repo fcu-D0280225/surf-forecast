@@ -67,13 +67,13 @@
     <!-- ── Browse Section (次要，預設收折) ──────────────────────────────────── -->
     <section class="browse-section">
       <button class="browse-toggle" onclick="toggleBrowse()">
-        <span>📋 瀏覽所有浪點</span>
+        <span>瀏覽所有浪點</span>
         <span class="browse-chevron" id="browse-chevron">▼</span>
       </button>
       <div id="browse-body" hidden>
         <main class="cards" id="cards">
           <div class="loading" id="loading">
-            <div class="loading-wave">🌊</div>
+            <div class="loading-wave">~</div>
             <p>載入預報資料中…</p>
           </div>
         </main>
@@ -84,7 +84,7 @@
     <!-- ── Weekly Report Section ────────────────────────────────────────────── -->
     <section class="weekly-section" id="weekly-section" hidden>
       <button class="browse-toggle" onclick="toggleWeekly()">
-        <span>📅 週末浪況預報（五六日）</span>
+        <span>週末浪況預報（五六日）</span>
         <span class="browse-chevron" id="weekly-chevron">▼</span>
       </button>
       <div id="weekly-body" hidden>
@@ -95,7 +95,7 @@
 
     <!-- ── Report Section ────────────────────────────────────────────────────── -->
     <section class="report-section">
-      <div class="report-label">📝 回報浪況</div>
+      <div class="report-label">回報浪況</div>
       <textarea id="report-input" class="report-textarea" rows="3"
         placeholder="自由填寫，例如：3/31 松柏港 10:00～12:00 浪況偏小且亂，週期約5秒，風浪干擾大"></textarea>
       <button class="report-send" onclick="submitReport()">送出回報</button>
