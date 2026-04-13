@@ -141,6 +141,7 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   transition: background .15s, color .15s;
 }
 .logout-btn:hover { background: rgba(255,255,255,.15); color: #fff; }
+.logout-btn:active { transform: scale(.95); }
 
 /* ── Spot Selector Panel ─────────────────────────────────── */
 .spot-selector {
@@ -559,7 +560,8 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   cursor: pointer;
   transition: opacity .15s;
 }
-.report-send:hover { opacity: .85; }
+.report-send:hover { background: #006da8; }
+.report-send:active { transform: scale(.97); }
 .report-done { font-size: .82rem; color: var(--good); }
 
 /* ── Weekly Report Section ───────────────────────────────── */
@@ -723,7 +725,8 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   align-items: center;
   justify-content: center;
 }
-.refresh-btn:hover   { opacity: .7; }
+.refresh-btn:hover   { background: rgba(255,255,255,.12); }
+.refresh-btn:active  { transform: scale(.9); }
 .refresh-btn:disabled { opacity: .4; cursor: default; }
 
 /* ── App footer ──────────────────────────────────── */
