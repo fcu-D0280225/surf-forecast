@@ -37,6 +37,12 @@
   * { animation: none !important; transition: none !important; }
 }
 
+/* ── Focus ─────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--ocean);
+  outline-offset: 2px;
+}
+
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
@@ -416,7 +422,7 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   color: var(--text);
   outline: none;
 }
-.chat-input:focus { border-color: var(--ocean); }
+.chat-input:focus { border-color: var(--ocean); outline: none; box-shadow: 0 0 0 2px rgba(0,119,182,.25); }
 .chat-send {
   background: var(--ocean);
   color: #fff;
@@ -539,7 +545,7 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   resize: vertical;
   line-height: 1.5;
 }
-.report-textarea:focus { border-color: var(--ocean); }
+.report-textarea:focus { border-color: var(--ocean); outline: none; box-shadow: 0 0 0 2px rgba(0,119,182,.25); }
 .report-send {
   align-self: flex-end;
   background: var(--ocean);
