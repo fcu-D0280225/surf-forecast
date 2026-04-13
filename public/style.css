@@ -91,8 +91,9 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   border: 1.5px solid rgba(255,255,255,.55);
   color: #fff;
   border-radius: 20px;
-  padding: 6px 14px;
+  padding: 10px 14px;
   font-size: .82rem;
+  min-height: 44px;
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
@@ -125,8 +126,9 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   border: 1.5px solid rgba(255,255,255,.40);
   color: rgba(255,255,255,.75);
   border-radius: 20px;
-  padding: 5px 12px;
+  padding: 10px 14px;
   font-size: .80rem;
+  min-height: 44px;
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
@@ -406,8 +408,9 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   flex: 1;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   font-size: .88rem;
+  min-height: 44px;
   font-family: inherit;
   background: var(--bg);
   color: var(--text);
@@ -419,8 +422,9 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 8px 16px;
+  padding: 10px 18px;
   font-size: .88rem;
+  min-height: 44px;
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
@@ -436,9 +440,10 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
 .quick-prompts button {
   background: var(--foam);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 5px 12px;
-  font-size: .78rem;
+  border-radius: 22px;
+  padding: 10px 16px;
+  font-size: .82rem;
+  min-height: 44px;
   font-family: inherit;
   color: var(--ocean);
   cursor: pointer;
@@ -541,8 +546,9 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 8px 18px;
+  padding: 10px 18px;
   font-size: .88rem;
+  min-height: 44px;
   font-family: inherit;
   cursor: pointer;
   transition: opacity .15s;
@@ -701,10 +707,15 @@ header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -.
   border: none;
   font-size: 1.1rem;
   cursor: pointer;
-  padding: 4px 6px;
+  padding: 10px;
   border-radius: 8px;
   line-height: 1;
   transition: opacity .15s;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .refresh-btn:hover   { opacity: .7; }
 .refresh-btn:disabled { opacity: .4; cursor: default; }
