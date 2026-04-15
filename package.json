@@ -5,6 +5,7 @@
   "scripts": {
     "start": "npm run forecast && node src/server.js",
     "serve": "node src/server.js",
+    "web": "node src/web-server.js",
     "dev": "npm run forecast && nodemon src/server.js",
     "forecast": "node scripts/fetch-and-generate.js",
     "test": "vitest run",
@@ -12,6 +13,7 @@
     "test-prompt": "node scripts/test-prompt.js"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.105",
     "@anthropic-ai/claude-code": "^2.1.89",
     "@anthropic-ai/sdk": "^0.82.0",
     "better-sqlite3": "^12.8.0",
