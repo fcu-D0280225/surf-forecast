@@ -379,6 +379,77 @@ header h1 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 80
   z-index: 100;
 }
 
+/* ── Seasonal Suggestion Banner ─────────────────────────────────────────── */
+.seasonal-banner {
+  background: linear-gradient(135deg, var(--gold-light) 0%, #fff7ed 100%);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.seasonal-banner[hidden] { display: none; }
+.seasonal-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.seasonal-icon { font-size: 1.1rem; }
+.seasonal-label {
+  font-family: var(--font-display);
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--ok);
+  letter-spacing: .02em;
+}
+.seasonal-body {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.seasonal-spot {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ocean);
+}
+.seasonal-reason {
+  font-size: .82rem;
+  color: var(--text);
+}
+.seasonal-tip {
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}
+.seasonal-add-btn {
+  align-self: flex-start;
+  background: none;
+  border: 1.5px solid var(--ocean);
+  color: var(--ocean);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: .78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  margin-top: 2px;
+}
+.seasonal-add-btn:hover {
+  background: var(--ocean);
+  color: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  .seasonal-banner {
+    background: linear-gradient(135deg, #422006 0%, #1c1917 100%);
+    border-color: #92400e;
+  }
+}
+
 /* ── Chat Section (inline, above cards) ─────────────────────────────────── */
 .chat-section {
   background: var(--card-bg);

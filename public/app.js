@@ -70,6 +70,7 @@ async function init() {
     : allSpots.map(sp => sp.slug);
 
   buildSpotSelector();
+  renderSeasonalBanner();
   await loadForecasts();
   renderCards();
   renderAccuracy();
@@ -639,6 +640,91 @@ function appendChatMsg(role, text) {
   log.scrollTop = log.scrollHeight;
   return div;
 }
+
+// ── Seasonal Spot Suggestion ─────────────────────────────────────────────────
+function getSeasonalSuggestion() {
+  const month = new Date().getMonth() + 1; // 1-12
+
+  // Summer: May-Sep → 南灣 (southwest swells)
+  // Winter: Nov-Mar → 東北角 (northeast monsoon)
+  // Shoulder: Apr & Oct → transitional tips
+
+  if (month >= 5 && month <= 9) {
+    return {
+      icon: '☀️',
+      label: '夏季推薦',
+      spotSlug: 'kenting-nanwan',
+      spotName: '墾丁南灣',
+      reason: '西南湧浪活躍，南灣迎來最佳浪季',
+      tip: '夏季南灣以西南湧為主，水溫舒適，適合各程度衝浪者',
+    };
+  }
+
+  if (month >= 11 || month <= 3) {
+    return {
+      icon: '🌊',
+      label: '冬季推薦',
+      spotSlug: 'northeast-cape',
+      spotName: '東北角',
+      reason: '東北季風帶來穩定浪況，冬季浪點首選',
+      tip: '冬季東北角浪大且穩，適合中高級衝浪者，記得穿防寒衣',
+    };
+  }
+
+  // April (shoulder → entering summer)
+  if (month === 4) {
+    return {
+      icon: '🌤️',
+      label: '春季過渡',
+      spotSlug: 'kenting-nanwan',
+      spotName: '墾丁南灣',
+      reason: '東北季風漸弱，南灣開始迎接西南湧',
+      tip: '春末南灣逐漸進入浪季，水溫回暖，是提前卡位的好時機',
+    };
+  }
+
+  // October (shoulder → entering winter)
+  return {
+    icon: '🍂',
+    label: '秋季過渡',
+    spotSlug: 'northeast-cape',
+    spotName: '東北角',
+    reason: '東北季風增強，東北角浪況開始活躍',
+    tip: '秋季東北角浪況回歸，水溫尚可，是冬季浪季的暖身期',
+  };
+}
+
+function renderSeasonalBanner() {
+  const banner = document.getElementById('seasonal-banner');
+  if (!banner) return;
+
+  const s = getSeasonalSuggestion();
+  const isSelected = selected.includes(s.spotSlug);
+
+  banner.hidden = false;
+  banner.innerHTML = `
+    <div class="seasonal-header">
+      <span class="seasonal-icon">${s.icon}</span>
+      <span class="seasonal-label">${s.label}</span>
+    </div>
+    <div class="seasonal-body">
+      <span class="seasonal-spot">${s.spotName}</span>
+      <span class="seasonal-reason">${s.reason}</span>
+    </div>
+    <p class="seasonal-tip">${s.tip}</p>
+    ${!isSelected ? `<button class="seasonal-add-btn" onclick="addSeasonalSpot('${s.spotSlug}')">+ 加入顯示</button>` : ''}
+  `;
+}
+
+window.addSeasonalSpot = function (slug) {
+  if (!selected.includes(slug)) {
+    selected.push(slug);
+    localStorage.setItem(LS_SELECTED, JSON.stringify(selected));
+    buildSpotSelector();
+    renderCards();
+  }
+  renderSeasonalBanner();
+};
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 init();
