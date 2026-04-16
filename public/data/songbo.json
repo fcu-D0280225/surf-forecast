@@ -1,22 +1,9 @@
 {
   "spot": "songbo",
   "name": "松柏港",
-  "generated_at": "2026-04-14T18:08:04.492Z",
-  "date": "2026-04-16",
+  "generated_at": "2026-04-15T18:12:51.575Z",
+  "date": "2026-04-17",
   "stale": true,
   "stale_since": "2026-04-14T18:08:04.492Z",
-  "stale_reason": "claude_error",
-  "swell_height_m": 0.9,
-  "swell_period_s": 6,
-  "swell_direction_deg": 149,
-  "wind_wave_height_m": 0,
-  "wind_speed_ms": 0.6,
-  "wind_direction_deg": 194,
-  "best_window_start": "19:00",
-  "best_window_end": "22:00",
-  "confidence": "med",
-  "rating": 2,
-  "summary": "浪小週期短，風況乾淨但力道不足",
-  "notes": "春季過渡期東北浪趨弱，6秒短週期浪型較碎；SSE 方向湧浪非本浪點最佳接收角度，適合練習但不適合追求品質的進階浪人。信心",
-  "tides": null
+  "stale_reason": "open_meteo_error"
 }

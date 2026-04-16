@@ -1,22 +1,9 @@
 {
   "spot": "taitung",
   "name": "台東",
-  "generated_at": "2026-04-14T18:08:04.502Z",
-  "date": "2026-04-16",
+  "generated_at": "2026-04-15T18:12:51.580Z",
+  "date": "2026-04-17",
   "stale": true,
   "stale_since": "2026-04-14T18:08:04.502Z",
-  "stale_reason": "claude_error",
-  "swell_height_m": 0.8,
-  "swell_period_s": 7,
-  "swell_direction_deg": 112,
-  "wind_wave_height_m": 0,
-  "wind_speed_ms": 1.9,
-  "wind_direction_deg": 282,
-  "best_window_start": "04:00",
-  "best_window_end": "09:00",
-  "confidence": "med",
-  "rating": 2,
-  "summary": "浪小但乾淨，適合長板練習",
-  "notes": "春季過渡期東北季風漸弱，湧浪偏小；離岸風條件佳但週期短，建議長板或中長板。留意西南季風醞釀期南部可能出現零星湧浪。數據信",
-  "tides": null
+  "stale_reason": "open_meteo_error"
 }

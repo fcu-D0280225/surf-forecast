@@ -1,22 +1,9 @@
 {
   "spot": "jiqi",
   "name": "磯崎",
-  "generated_at": "2026-04-14T18:08:04.481Z",
-  "date": "2026-04-16",
+  "generated_at": "2026-04-15T18:12:51.573Z",
+  "date": "2026-04-17",
   "stale": true,
   "stale_since": "2026-04-14T18:08:04.481Z",
-  "stale_reason": "claude_error",
-  "swell_height_m": 0.8,
-  "swell_period_s": 8,
-  "swell_direction_deg": 120,
-  "wind_wave_height_m": 0,
-  "wind_speed_ms": 0.7,
-  "wind_direction_deg": 176,
-  "best_window_start": "18:00",
-  "best_window_end": "22:00",
-  "confidence": "high",
-  "rating": 3,
-  "summary": "浪小但極乾淨，適合練習",
-  "notes": "春季東北季風漸弱，今日近乎無風、湧浪純淨，適合初學者下水。浪高偏小，進階者可能不過癮。留意西南季風逐漸增強，南部浪點未來",
-  "tides": null
+  "stale_reason": "open_meteo_error"
 }

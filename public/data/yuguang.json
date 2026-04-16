@@ -1,22 +1,9 @@
 {
   "spot": "yuguang",
   "name": "魚光島",
-  "generated_at": "2026-04-14T18:08:04.508Z",
-  "date": "2026-04-16",
+  "generated_at": "2026-04-15T18:12:51.585Z",
+  "date": "2026-04-17",
   "stale": true,
   "stale_since": "2026-04-14T18:08:04.508Z",
-  "stale_reason": "claude_error",
-  "swell_height_m": 0.6,
-  "swell_period_s": 5,
-  "swell_direction_deg": 233,
-  "wind_wave_height_m": 0,
-  "wind_speed_ms": 1.4,
-  "wind_direction_deg": 184,
-  "best_window_start": "04:00",
-  "best_window_end": "08:00",
-  "confidence": "med",
-  "rating": 2,
-  "summary": "浪小週期短，風況乾淨但力道不足",
-  "notes": "春季西南湧浪尚未成形，0.6m/5s 浪況偏弱，適合長板或初學者練習。數據信心度中等，建議出發前再確認實際浪況。",
-  "tides": null
+  "stale_reason": "open_meteo_error"
 }
