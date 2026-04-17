@@ -1,9 +1,9 @@
 {
   "spot": "yuguang",
   "name": "魚光島",
-  "generated_at": "2026-04-15T18:12:51.585Z",
-  "date": "2026-04-17",
+  "generated_at": "2026-04-16T18:17:15.402Z",
+  "date": "2026-04-18",
   "stale": true,
   "stale_since": "2026-04-14T18:08:04.508Z",
-  "stale_reason": "open_meteo_error"
+  "stale_reason": "claude_error"
 }

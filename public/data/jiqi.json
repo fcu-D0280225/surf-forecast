@@ -1,9 +1,9 @@
 {
   "spot": "jiqi",
   "name": "磯崎",
-  "generated_at": "2026-04-15T18:12:51.573Z",
-  "date": "2026-04-17",
+  "generated_at": "2026-04-16T18:17:15.390Z",
+  "date": "2026-04-18",
   "stale": true,
   "stale_since": "2026-04-14T18:08:04.481Z",
-  "stale_reason": "open_meteo_error"
+  "stale_reason": "claude_error"
 }
