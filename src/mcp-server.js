@@ -5,12 +5,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { geocode, fetchConditionsForDate, fetchSurfForecast, fetchWindForecast } from './surf-utils.js';
 
-const __dirnameMcp = path.dirname(fileURLToPath(import.meta.url));
-const RAG_DB_PATH = path.join(__dirnameMcp, '..', 'data', 'surf-rag.sqlite');
+const RAG_DB_PATH = `mysql://${process.env.MYSQL_HOST || 'localhost'}/${process.env.MYSQL_DATABASE || 'surf_forecast'}`;
 
 const server = new McpServer({ name: 'surf-forecast', version: '2.0.0' });
 

@@ -1,5 +1,7 @@
 node_modules/
 data/*.sqlite
+data/backup-sqlite-*/
 .cache/
 .gstack/
+.env
 .env.deploy

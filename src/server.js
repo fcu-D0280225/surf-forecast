@@ -21,6 +21,7 @@ import {
   createUser, listUsers, deleteUser, userCount,
   setPoints, deductPoint, getUserInfo,
 } from './auth.js';
+import { initDb } from './db.js';
 
 const __dirname       = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR      = path.join(__dirname, '..', 'public');
@@ -62,28 +63,29 @@ function getToken(req) {
   return match ? match[1] : null;
 }
 
-function requireAuth(req, res, next) {
-  const session = getSession(getToken(req));
+async function requireAuth(req, res, next) {
+  const session = await getSession(getToken(req));
   if (!session) return res.status(401).json({ error: '請先登入' });
   req.session = session;
   next();
 }
 
-function requireAdmin(req, res, next) {
-  const user = getUserInfo(req.session.user_id);
+async function requireAdmin(req, res, next) {
+  const user = await getUserInfo(req.session.user_id);
   if (!user?.is_admin) return res.status(403).json({ error: '需要管理員權限' });
   next();
 }
 
-cleanExpiredSessions();
+await initDb();
+await cleanExpiredSessions();
 
 // ── Auth routes ────────────────────────────────────────────────────────────────
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body ?? {};
   if (!username || !password) return res.status(400).json({ error: '請填寫帳號和密碼' });
 
-  const result = login(username, password);
+  const result = await login(username, password);
   if (!result) return res.status(401).json({ error: '帳號或密碼錯誤' });
 
   const maxAge = 30 * 24 * 3600;
@@ -91,17 +93,17 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ username: result.username, displayName: result.displayName, isAdmin: result.isAdmin });
 });
 
-app.post('/api/auth/logout', (req, res) => {
+app.post('/api/auth/logout', async (req, res) => {
   const token = getToken(req);
-  if (token) logout(token);
+  if (token) await logout(token);
   res.setHeader('Set-Cookie', 'surf_session=; HttpOnly; Path=/; Max-Age=0');
   res.json({ ok: true });
 });
 
-app.get('/api/auth/me', (req, res) => {
-  const session = getSession(getToken(req));
+app.get('/api/auth/me', async (req, res) => {
+  const session = await getSession(getToken(req));
   if (!session) return res.status(401).json({ error: '未登入' });
-  const user = getUserInfo(session.user_id);
+  const user = await getUserInfo(session.user_id);
   if (!user) return res.status(401).json({ error: '未登入' });
   res.json({
     username:    user.username,
@@ -113,33 +115,34 @@ app.get('/api/auth/me', (req, res) => {
 
 // ── Admin routes ───────────────────────────────────────────────────────────────
 
-app.get('/api/admin/users', requireAuth, requireAdmin, (_req, res) => {
-  res.json(listUsers());
+app.get('/api/admin/users', requireAuth, requireAdmin, async (_req, res) => {
+  res.json(await listUsers());
 });
 
-app.post('/api/admin/users', requireAuth, requireAdmin, (req, res) => {
+app.post('/api/admin/users', requireAuth, requireAdmin, async (req, res) => {
   const { username, password, displayName, isAdmin = false, points = 0 } = req.body ?? {};
   if (!username || !password || !displayName)
     return res.status(400).json({ error: '請填寫 username / password / displayName' });
   try {
-    createUser(username, password, displayName, { isAdmin, points });
+    await createUser(username, password, displayName, { isAdmin, points });
     res.json({ ok: true });
   } catch (e) {
-    if (e.message?.includes('UNIQUE')) return res.status(409).json({ error: '帳號已存在' });
+    if (e.code === 'ER_DUP_ENTRY' || e.message?.includes('Duplicate'))
+      return res.status(409).json({ error: '帳號已存在' });
     throw e;
   }
 });
 
-app.patch('/api/admin/users/:username/points', requireAuth, requireAdmin, (req, res) => {
+app.patch('/api/admin/users/:username/points', requireAuth, requireAdmin, async (req, res) => {
   const { points } = req.body ?? {};
   if (typeof points !== 'number' || points < 0)
     return res.status(400).json({ error: 'points 必須為非負整數' });
-  const ok = setPoints(req.params.username, Math.floor(points));
+  const ok = await setPoints(req.params.username, Math.floor(points));
   ok ? res.json({ ok: true }) : res.status(404).json({ error: '找不到該用戶' });
 });
 
-app.delete('/api/admin/users/:username', requireAuth, requireAdmin, (req, res) => {
-  const ok = deleteUser(req.params.username);
+app.delete('/api/admin/users/:username', requireAuth, requireAdmin, async (req, res) => {
+  const ok = await deleteUser(req.params.username);
   ok ? res.json({ ok: true }) : res.status(404).json({ error: '找不到該用戶' });
 });
 
@@ -271,7 +274,7 @@ app.post('/api/chat', requireAuth, async (req, res) => {
   }
 
   // 扣點（admin 不扣）
-  const deduct = deductPoint(req.session.user_id);
+  const deduct = await deductPoint(req.session.user_id);
   if (!deduct.success) {
     return res.status(402).json({ error: '點數不足，請聯絡管理員補充點數' });
   }
@@ -297,7 +300,7 @@ app.post('/api/chat', requireAuth, async (req, res) => {
   }
 
   // 近期用戶回報（RAG）
-  const reports = getRecentReports(10);
+  const reports = await getRecentReports(10);
   let ragContext = '';
   if (reports.length > 0) {
     ragContext = '\n【近期用戶回報（原文）】\n';
@@ -362,13 +365,13 @@ ${forecastContext}${ragContext}
 });
 
 // ── POST /api/report ──────────────────────────────────────────────────────────
-app.post('/api/report', (req, res) => {
+app.post('/api/report', async (req, res) => {
   const { content } = req.body ?? {};
   if (!content?.trim()) {
     return res.status(400).json({ error: 'content 為必填' });
   }
   try {
-    insertReport(content);
+    await insertReport(content);
     // 非同步偵測回報中是否提到新浪點
     detectNewSpots(content).catch(() => {});
     res.json({ ok: true });
@@ -379,8 +382,8 @@ app.post('/api/report', (req, res) => {
 });
 
 // ── GET /api/reports ──────────────────────────────────────────────────────────
-app.get('/api/reports', (_req, res) => {
-  res.json(listReports());
+app.get('/api/reports', async (_req, res) => {
+  res.json(await listReports());
 });
 
 // ── Start ──────────────────────────────────────────────────────────────────────

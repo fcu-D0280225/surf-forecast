@@ -16,10 +16,11 @@
     "@anthropic-ai/claude-agent-sdk": "^0.2.105",
     "@anthropic-ai/claude-code": "^2.1.89",
     "@anthropic-ai/sdk": "^0.82.0",
-    "better-sqlite3": "^12.8.0",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "mysql2": "^3.22.1"
   },
   "devDependencies": {
+    "better-sqlite3": "^12.9.0",
     "nodemon": "^3.1.14",
     "vitest": "latest"
   }

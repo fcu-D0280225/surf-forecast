@@ -3,18 +3,18 @@
  */
 import express from 'express';
 import { query } from '@anthropic-ai/claude-agent-sdk';
-import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { login, logout, getSession, cleanExpiredSessions, userCount } from './auth.js';
+import { all, first, initDb } from './db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const MCP_SERVER = path.join(__dirname, 'mcp-server.js');
-const DB_PATH    = path.join(__dirname, '..', 'data', 'surf-rag.sqlite');
 const PORT       = process.env.PORT || 3000;
 
-cleanExpiredSessions();
+await initDb();
+await cleanExpiredSessions();
 
 const app = express();
 app.use(express.json());
@@ -41,9 +41,9 @@ function clearSessionCookie(res) {
 }
 
 // ── 認證中介層 ────────────────────────────────────────────────────────────────
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   const token   = parseCookies(req).surf_session;
-  const session = getSession(token);
+  const session = await getSession(token);
   if (!session) {
     if (req.path.startsWith('/api/')) {
       return res.status(401).json({ error: '請先登入' });
@@ -64,9 +64,9 @@ app.use('/sw.js',         express.static(path.join(PUBLIC_DIR, 'sw.js')));
 app.use('/icons',         express.static(path.join(PUBLIC_DIR, 'icons')));
 
 // ── 登入 / 登出 API ───────────────────────────────────────────────────────────
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
-  const result = login(username, password);
+  const result = await login(username, password);
   if (!result) {
     return res.status(401).json({ error: '帳號或密碼錯誤' });
   }
@@ -74,16 +74,16 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ ok: true, displayName: result.displayName });
 });
 
-app.post('/api/auth/logout', (req, res) => {
+app.post('/api/auth/logout', async (req, res) => {
   const token = parseCookies(req).surf_session;
-  if (token) logout(token);
+  if (token) await logout(token);
   clearSessionCookie(res);
   res.json({ ok: true });
 });
 
-app.get('/api/auth/me', (req, res) => {
+app.get('/api/auth/me', async (req, res) => {
   const token   = parseCookies(req).surf_session;
-  const session = getSession(token);
+  const session = await getSession(token);
   if (!session) return res.status(401).json({ error: '未登入' });
   res.json({ username: session.username, displayName: session.display_name });
 });
@@ -114,35 +114,34 @@ const SYSTEM_PROMPT = `你是一位專業的衝浪教練，擅長分析海況並
  * 從 DB 讀取個人統計，組成 system prompt 的補充段落。
  * 紀錄數不足時回傳空字串，不影響正常使用。
  */
-function buildStatsContext() {
+async function buildStatsContext() {
   try {
-    const db = new Database(DB_PATH, { readonly: true });
-
-    const total = db.prepare('SELECT COUNT(*) as n FROM surf_log').get()?.n ?? 0;
+    const totalRow = await first('SELECT COUNT(*) AS n FROM surf_log');
+    const total = totalRow?.n ?? 0;
     if (total === 0) return '';
 
-    const avgCond = db.prepare(`
+    const avgCond = await all(`
       SELECT rating,
-        ROUND(AVG(wave_height_m),  1) as wave_h,
-        ROUND(AVG(swell_height_m), 1) as swell_h,
-        ROUND(AVG(wave_period_s),  0) as period,
-        ROUND(AVG(wind_speed_kmh), 0) as wind,
-        COUNT(*) as n
+        ROUND(AVG(wave_height_m),  1) AS wave_h,
+        ROUND(AVG(swell_height_m), 1) AS swell_h,
+        ROUND(AVG(wave_period_s),  0) AS period,
+        ROUND(AVG(wind_speed_kmh), 0) AS wind,
+        COUNT(*) AS n
       FROM surf_log
       WHERE wave_height_m IS NOT NULL
       GROUP BY rating
       ORDER BY CASE rating WHEN '好' THEN 1 WHEN '普通' THEN 2 ELSE 3 END
-    `).all();
+    `);
 
-    const bySpot = db.prepare(`
+    const bySpot = await all(`
       SELECT spot,
-        COUNT(*) as total,
-        SUM(CASE WHEN rating = '好' THEN 1 ELSE 0 END) as good
+        COUNT(*) AS total,
+        SUM(CASE WHEN rating = '好' THEN 1 ELSE 0 END) AS good
       FROM surf_log
       GROUP BY spot
       ORDER BY total DESC
       LIMIT 8
-    `).all();
+    `);
 
     let ctx = `\n\n## 使用者個人好浪條件（來自歷史 ${total} 筆衝浪紀錄）\n`;
     ctx += '預測時請將預報數值與下表對比，判斷本次預報條件偏向哪個評價等級。\n';
@@ -188,7 +187,7 @@ app.post('/api/chat', async (req, res) => {
   const promptWithUser = `[${req.user.displayName}] ${message}`;
 
   // 每次請求都讀最新統計，確保剛記錄的資料立刻生效
-  const systemPrompt = SYSTEM_PROMPT + buildStatsContext();
+  const systemPrompt = SYSTEM_PROMPT + await buildStatsContext();
 
   try {
     for await (const msg of query({
@@ -204,7 +203,6 @@ app.post('/api/chat', async (req, res) => {
       if (msg.type === 'text' && msg.text) send({ type: 'text', text: msg.text });
       if ('result' in msg) {
         send({ type: 'done', text: msg.result });
-        loadLogs(); // refresh after recording
       }
     }
   } catch (err) {
@@ -243,67 +241,65 @@ app.post('/api/logs', async (req, res) => {
 });
 
 // ── GET /api/logs ─────────────────────────────────────────────────────────────
-app.get('/api/logs', (_req, res) => {
+app.get('/api/logs', async (_req, res) => {
   try {
-    const rows = new Database(DB_PATH, { readonly: true }).prepare(`
+    const rows = await all(`
       SELECT id, date_iso, spot, rating, notes,
              wave_height_m, wave_period_s, wind_speed_kmh, wind_direction_text, swell_height_m,
              wave_direction_text, water_temp_c, weather_text, tide
       FROM surf_log ORDER BY date_iso DESC, id DESC LIMIT 50
-    `).all();
+    `);
     res.json(rows);
   } catch { res.json([]); }
 });
 
 // ── GET /api/stats ────────────────────────────────────────────────────────────
-app.get('/api/stats', (_req, res) => {
+app.get('/api/stats', async (_req, res) => {
   try {
-    const db = new Database(DB_PATH, { readonly: true });
-
-    const overview = db.prepare(`
+    const overview = await first(`
       SELECT
-        COUNT(*) as total,
-        SUM(CASE WHEN rating = '好'   THEN 1 ELSE 0 END) as good,
-        SUM(CASE WHEN rating = '普通' THEN 1 ELSE 0 END) as ok,
-        SUM(CASE WHEN rating = '不好' THEN 1 ELSE 0 END) as bad
+        COUNT(*) AS total,
+        SUM(CASE WHEN rating = '好'   THEN 1 ELSE 0 END) AS good,
+        SUM(CASE WHEN rating = '普通' THEN 1 ELSE 0 END) AS ok,
+        SUM(CASE WHEN rating = '不好' THEN 1 ELSE 0 END) AS bad
       FROM surf_log
-    `).get();
+    `);
 
-    const bySpot = db.prepare(`
+    const bySpot = await all(`
       SELECT spot,
-        COUNT(*) as total,
-        SUM(CASE WHEN rating = '好'   THEN 1 ELSE 0 END) as good,
-        SUM(CASE WHEN rating = '普通' THEN 1 ELSE 0 END) as ok,
-        SUM(CASE WHEN rating = '不好' THEN 1 ELSE 0 END) as bad
+        COUNT(*) AS total,
+        SUM(CASE WHEN rating = '好'   THEN 1 ELSE 0 END) AS good,
+        SUM(CASE WHEN rating = '普通' THEN 1 ELSE 0 END) AS ok,
+        SUM(CASE WHEN rating = '不好' THEN 1 ELSE 0 END) AS bad
       FROM surf_log
       GROUP BY spot
       ORDER BY total DESC
       LIMIT 10
-    `).all();
+    `);
 
-    const byMonth = db.prepare(`
-      SELECT strftime('%Y-%m', date_iso) as month,
-        COUNT(*) as total,
-        SUM(CASE WHEN rating = '好'   THEN 1 ELSE 0 END) as good,
-        SUM(CASE WHEN rating = '普通' THEN 1 ELSE 0 END) as ok,
-        SUM(CASE WHEN rating = '不好' THEN 1 ELSE 0 END) as bad
+    const byMonth = await all(`
+      SELECT DATE_FORMAT(date_iso, '%Y-%m') AS month,
+        COUNT(*) AS total,
+        SUM(CASE WHEN rating = '好'   THEN 1 ELSE 0 END) AS good,
+        SUM(CASE WHEN rating = '普通' THEN 1 ELSE 0 END) AS ok,
+        SUM(CASE WHEN rating = '不好' THEN 1 ELSE 0 END) AS bad
       FROM surf_log
       GROUP BY month
       ORDER BY month ASC
       LIMIT 12
-    `).all();
+    `);
 
-    const avgConditions = db.prepare(`
+    const avgConditions = await all(`
       SELECT rating,
-        ROUND(AVG(wave_height_m),  1) as avg_wave_height,
-        ROUND(AVG(wave_period_s),  0) as avg_wave_period,
-        ROUND(AVG(wind_speed_kmh), 0) as avg_wind_speed,
-        ROUND(AVG(swell_height_m), 1) as avg_swell_height
+        ROUND(AVG(wave_height_m),  1) AS avg_wave_height,
+        ROUND(AVG(wave_period_s),  0) AS avg_wave_period,
+        ROUND(AVG(wind_speed_kmh), 0) AS avg_wind_speed,
+        ROUND(AVG(swell_height_m), 1) AS avg_swell_height
       FROM surf_log
       WHERE wave_height_m IS NOT NULL
       GROUP BY rating
       ORDER BY CASE rating WHEN '好' THEN 1 WHEN '普通' THEN 2 ELSE 3 END
-    `).all();
+    `);
 
     res.json({ overview, bySpot, byMonth, avgConditions });
   } catch (e) {
@@ -311,11 +307,8 @@ app.get('/api/stats', (_req, res) => {
   }
 });
 
-// no-op to avoid reference error (loadLogs is only meaningful client-side)
-function loadLogs() {}
-
 // ── 啟動 ──────────────────────────────────────────────────────────────────────
-const count = userCount();
+const count = await userCount();
 if (count === 0) {
   console.log('\n⚠️  尚無使用者，請先執行以下指令新增帳號：');
   console.log('   node src/add-user.js add <username> <password> <顯示名稱>\n');
