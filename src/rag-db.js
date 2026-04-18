@@ -11,22 +11,12 @@ export async function insertReport(content) {
 
 /** 取最近 N 筆回饋（供 Claude prompt 使用） */
 export async function getRecentReports(limit = 15) {
-  return all(
-    `SELECT content, created_at
-     FROM reports
-     ORDER BY id DESC
-     LIMIT ?`,
-    [limit],
-  );
+  const n = parseInt(limit, 10);
+  return all(`SELECT content, created_at FROM reports ORDER BY id DESC LIMIT ${n}`);
 }
 
 /** 列出所有回饋（API 用） */
 export async function listReports(limit = 50) {
-  return all(
-    `SELECT id, content, created_at
-     FROM reports
-     ORDER BY id DESC
-     LIMIT ?`,
-    [limit],
-  );
+  const n = parseInt(limit, 10);
+  return all(`SELECT id, content, created_at FROM reports ORDER BY id DESC LIMIT ${n}`);
 }
