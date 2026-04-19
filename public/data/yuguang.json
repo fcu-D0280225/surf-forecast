@@ -1,9 +1,23 @@
 {
   "spot": "yuguang",
   "name": "魚光島",
-  "generated_at": "2026-04-16T18:17:15.402Z",
-  "date": "2026-04-18",
-  "stale": true,
-  "stale_since": "2026-04-14T18:08:04.508Z",
-  "stale_reason": "claude_error"
+  "generated_at": "2026-04-19T03:13:47.296Z",
+  "date": "2026-04-20",
+  "stale": false,
+  "stale_since": null,
+  "swell_height_m": 0.2,
+  "swell_period_s": 3,
+  "swell_direction_deg": 337,
+  "wind_wave_height_m": 0,
+  "wind_speed_ms": 1.5,
+  "wind_direction_deg": 50,
+  "best_window_start": "06:00",
+  "best_window_end": "10:00",
+  "swell_ratio": 0.98,
+  "wind_model_spread_ms": 0.4,
+  "confidence": "low",
+  "tides": null,
+  "rating": 1,
+  "summary": "浪太小無法衝浪，建議等待西南湧浪",
+  "notes": "春季過渡期，西南季風尚未發力，目前浪高僅0.2m且週期極短(3秒)，不具衝浪條件。魚光島需等夏季西南湧浪季節（6-9月）"
 }

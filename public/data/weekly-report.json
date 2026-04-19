@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-04-06T06:14:53.548Z",
-  "week_start": "2026-04-06",
-  "week_end": "2026-04-12",
+  "generated_at": "2026-04-19T03:14:24.551Z",
+  "week_start": "2026-04-19",
+  "week_end": "2026-04-25",
   "seasonal_context": "【春季過渡期（4–5月）】東北季風漸弱，注意西南季風開始醞釀帶來南部湧浪。",
   "regions": [
     {
@@ -10,117 +10,117 @@
         "墾丁南灣",
         "佳樂水"
       ],
-      "overall_summary": "整週浪況偏小，週期偏短，週五起湧浪週期升至8s略有改善",
-      "best_day": "週五(04/10)",
-      "worst_day": "週一(04/06)",
-      "highlight": "東北季風漸退，西南季風未成，週期8s湧浪週五後可期，風浪整體平穩",
+      "overall_summary": "週日至週二有穩定長週期湧浪，週三後明顯衰退，週末浪況疲軟。",
+      "best_day": "週日(04/19)",
+      "worst_day": "週六(04/25)",
+      "highlight": "春季過渡期，西南季風醞釀中，把握週初長週期湧浪。",
       "daily_ratings": [
         {
-          "date": "2026-04-06",
-          "weekday": "週一",
-          "rating": 2,
-          "note": "浪小週期短"
-        },
-        {
-          "date": "2026-04-07",
-          "weekday": "週二",
-          "rating": 2,
-          "note": "風浪干擾明顯"
-        },
-        {
-          "date": "2026-04-08",
-          "weekday": "週三",
-          "rating": 2,
-          "note": "浪況平平"
-        },
-        {
-          "date": "2026-04-09",
-          "weekday": "週四",
-          "rating": 3,
-          "note": "風平浪靜"
-        },
-        {
-          "date": "2026-04-10",
-          "weekday": "週五",
-          "rating": 3,
-          "note": "週期8s最佳"
-        },
-        {
-          "date": "2026-04-11",
-          "weekday": "週六",
-          "rating": 3,
-          "note": "週期佳風輕"
-        },
-        {
-          "date": "2026-04-12",
+          "date": "2026-04-19",
           "weekday": "週日",
+          "rating": 4,
+          "note": "長週期湧浪風弱"
+        },
+        {
+          "date": "2026-04-20",
+          "weekday": "週一",
+          "rating": 4,
+          "note": "浪況穩定可衝"
+        },
+        {
+          "date": "2026-04-21",
+          "weekday": "週二",
           "rating": 3,
-          "note": "穩定可出水"
+          "note": "風浪漸起"
+        },
+        {
+          "date": "2026-04-22",
+          "weekday": "週三",
+          "rating": 3,
+          "note": "湧浪開始衰退"
+        },
+        {
+          "date": "2026-04-23",
+          "weekday": "週四",
+          "rating": 2,
+          "note": "浪高偏小"
+        },
+        {
+          "date": "2026-04-24",
+          "weekday": "週五",
+          "rating": 1,
+          "note": "週期短浪況差"
+        },
+        {
+          "date": "2026-04-25",
+          "weekday": "週六",
+          "rating": 1,
+          "note": "風浪亂無形"
         }
       ],
       "raw_data": [
         {
-          "date": "2026-04-06",
-          "weekday": "週一",
-          "avg_swell_h_m": 0.7,
-          "max_swell_h_m": 0.9,
-          "avg_swell_p_s": 6,
-          "avg_wind_wave_m": 0.4,
-          "avg_wind_spd_ms": 4.1
-        },
-        {
-          "date": "2026-04-07",
-          "weekday": "週二",
-          "avg_swell_h_m": 0.8,
-          "max_swell_h_m": 0.9,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.6,
-          "avg_wind_spd_ms": 6.3
-        },
-        {
-          "date": "2026-04-08",
-          "weekday": "週三",
-          "avg_swell_h_m": 0.9,
-          "max_swell_h_m": 0.9,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.4,
-          "avg_wind_spd_ms": 5.6
-        },
-        {
-          "date": "2026-04-09",
-          "weekday": "週四",
-          "avg_swell_h_m": 0.9,
-          "max_swell_h_m": 1.1,
-          "avg_swell_p_s": 6,
-          "avg_wind_wave_m": 0.1,
-          "avg_wind_spd_ms": 3.1
-        },
-        {
-          "date": "2026-04-10",
-          "weekday": "週五",
-          "avg_swell_h_m": 0.8,
-          "max_swell_h_m": 0.9,
-          "avg_swell_p_s": 8,
-          "avg_wind_wave_m": 0.6,
-          "avg_wind_spd_ms": 6.9
-        },
-        {
-          "date": "2026-04-11",
-          "weekday": "週六",
-          "avg_swell_h_m": 0.8,
-          "max_swell_h_m": 0.8,
-          "avg_swell_p_s": 8,
-          "avg_wind_wave_m": 0.2,
-          "avg_wind_spd_ms": 4.9
-        },
-        {
-          "date": "2026-04-12",
+          "date": "2026-04-19",
           "weekday": "週日",
-          "avg_swell_h_m": 0.8,
-          "max_swell_h_m": 0.8,
-          "avg_swell_p_s": 8,
+          "avg_swell_h_m": 1.8,
+          "max_swell_h_m": 2,
+          "avg_swell_p_s": 10,
           "avg_wind_wave_m": 0.2,
+          "avg_wind_spd_ms": 2.1
+        },
+        {
+          "date": "2026-04-20",
+          "weekday": "週一",
+          "avg_swell_h_m": 1.9,
+          "max_swell_h_m": 2,
+          "avg_swell_p_s": 10,
+          "avg_wind_wave_m": 0.4,
           "avg_wind_spd_ms": 4.3
+        },
+        {
+          "date": "2026-04-21",
+          "weekday": "週二",
+          "avg_swell_h_m": 1.6,
+          "max_swell_h_m": 1.8,
+          "avg_swell_p_s": 9,
+          "avg_wind_wave_m": 0.6,
+          "avg_wind_spd_ms": 7.8
+        },
+        {
+          "date": "2026-04-22",
+          "weekday": "週三",
+          "avg_swell_h_m": 1.3,
+          "max_swell_h_m": 1.5,
+          "avg_swell_p_s": 8,
+          "avg_wind_wave_m": 0.3,
+          "avg_wind_spd_ms": 5.5
+        },
+        {
+          "date": "2026-04-23",
+          "weekday": "週四",
+          "avg_swell_h_m": 0.8,
+          "max_swell_h_m": 1,
+          "avg_swell_p_s": 8,
+          "avg_wind_wave_m": 0.5,
+          "avg_wind_spd_ms": 6.6
+        },
+        {
+          "date": "2026-04-24",
+          "weekday": "週五",
+          "avg_swell_h_m": 0.7,
+          "max_swell_h_m": 0.8,
+          "avg_swell_p_s": 5,
+          "avg_wind_wave_m": 0.5,
+          "avg_wind_spd_ms": 7.4
+        },
+        {
+          "date": "2026-04-25",
+          "weekday": "週六",
+          "avg_swell_h_m": 0.5,
+          "max_swell_h_m": 0.6,
+          "avg_swell_p_s": 6,
+          "avg_wind_wave_m": 1,
+          "avg_wind_spd_ms": 3.3
         }
       ]
     },
@@ -131,117 +131,117 @@
         "石門洞",
         "礁崎"
       ],
-      "overall_summary": "整週浪況偏弱，週三最佳，湧浪1.3m週期6s，週六最差近乎無浪",
-      "best_day": "週三(04/08)",
-      "worst_day": "週六(04/11)",
-      "highlight": "春季過渡期東北季風漸退，浪高普遍偏低，週三把握短暫較佳浪窗",
+      "overall_summary": "前半週湧浪偏小風平浪靜，週五起湧浪回升至1米但週期短。",
+      "best_day": "週六(04/25)",
+      "worst_day": "週三(04/22)",
+      "highlight": "東北季風漸弱，週末湧浪回升風力減弱，把握乾淨浪況。",
       "daily_ratings": [
         {
-          "date": "2026-04-06",
-          "weekday": "週一",
-          "rating": 2,
-          "note": "浪小風弱"
-        },
-        {
-          "date": "2026-04-07",
-          "weekday": "週二",
-          "rating": 3,
-          "note": "風浪混合可衝"
-        },
-        {
-          "date": "2026-04-08",
-          "weekday": "週三",
-          "rating": 4,
-          "note": "本週最佳浪況"
-        },
-        {
-          "date": "2026-04-09",
-          "weekday": "週四",
-          "rating": 2,
-          "note": "浪況回落"
-        },
-        {
-          "date": "2026-04-10",
-          "weekday": "週五",
-          "rating": 2,
-          "note": "普通小浪"
-        },
-        {
-          "date": "2026-04-11",
-          "weekday": "週六",
-          "rating": 1,
-          "note": "幾乎無浪"
-        },
-        {
-          "date": "2026-04-12",
+          "date": "2026-04-19",
           "weekday": "週日",
           "rating": 2,
-          "note": "微弱湧浪"
+          "note": "浪小乾淨"
+        },
+        {
+          "date": "2026-04-20",
+          "weekday": "週一",
+          "rating": 2,
+          "note": "浪小週期長"
+        },
+        {
+          "date": "2026-04-21",
+          "weekday": "週二",
+          "rating": 2,
+          "note": "風浪增雜亂"
+        },
+        {
+          "date": "2026-04-22",
+          "weekday": "週三",
+          "rating": 1,
+          "note": "浪極小平靜"
+        },
+        {
+          "date": "2026-04-23",
+          "weekday": "週四",
+          "rating": 2,
+          "note": "風浪干擾"
+        },
+        {
+          "date": "2026-04-24",
+          "weekday": "週五",
+          "rating": 3,
+          "note": "湧浪回升"
+        },
+        {
+          "date": "2026-04-25",
+          "weekday": "週六",
+          "rating": 3,
+          "note": "浪況乾淨"
         }
       ],
       "raw_data": [
         {
-          "date": "2026-04-06",
-          "weekday": "週一",
-          "avg_swell_h_m": 0.5,
-          "max_swell_h_m": 1,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.7,
-          "avg_wind_spd_ms": 2.2
-        },
-        {
-          "date": "2026-04-07",
-          "weekday": "週二",
-          "avg_swell_h_m": 1,
-          "max_swell_h_m": 1.3,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.9,
-          "avg_wind_spd_ms": 4.6
-        },
-        {
-          "date": "2026-04-08",
-          "weekday": "週三",
-          "avg_swell_h_m": 1.3,
-          "max_swell_h_m": 1.4,
-          "avg_swell_p_s": 6,
-          "avg_wind_wave_m": 0.8,
-          "avg_wind_spd_ms": 3.3
-        },
-        {
-          "date": "2026-04-09",
-          "weekday": "週四",
-          "avg_swell_h_m": 0.9,
-          "max_swell_h_m": 1.1,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.4,
-          "avg_wind_spd_ms": 2.2
-        },
-        {
-          "date": "2026-04-10",
-          "weekday": "週五",
-          "avg_swell_h_m": 1,
-          "max_swell_h_m": 1.2,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.6,
-          "avg_wind_spd_ms": 2.8
-        },
-        {
-          "date": "2026-04-11",
-          "weekday": "週六",
-          "avg_swell_h_m": 0.5,
-          "max_swell_h_m": 0.8,
-          "avg_swell_p_s": 4,
-          "avg_wind_wave_m": 0.1,
-          "avg_wind_spd_ms": 1.6
-        },
-        {
-          "date": "2026-04-12",
+          "date": "2026-04-19",
           "weekday": "週日",
-          "avg_swell_h_m": 0.8,
+          "avg_swell_h_m": 0.9,
+          "max_swell_h_m": 1,
+          "avg_swell_p_s": 6,
+          "avg_wind_wave_m": 0.1,
+          "avg_wind_spd_ms": 2.5
+        },
+        {
+          "date": "2026-04-20",
+          "weekday": "週一",
+          "avg_swell_h_m": 0.7,
+          "max_swell_h_m": 0.8,
+          "avg_swell_p_s": 8,
+          "avg_wind_wave_m": 0.1,
+          "avg_wind_spd_ms": 2.4
+        },
+        {
+          "date": "2026-04-21",
+          "weekday": "週二",
+          "avg_swell_h_m": 0.6,
+          "max_swell_h_m": 0.7,
+          "avg_swell_p_s": 7,
+          "avg_wind_wave_m": 0.6,
+          "avg_wind_spd_ms": 4.8
+        },
+        {
+          "date": "2026-04-22",
+          "weekday": "週三",
+          "avg_swell_h_m": 0.5,
+          "max_swell_h_m": 0.7,
+          "avg_swell_p_s": 5,
+          "avg_wind_wave_m": 0.1,
+          "avg_wind_spd_ms": 1.7
+        },
+        {
+          "date": "2026-04-23",
+          "weekday": "週四",
+          "avg_swell_h_m": 0.6,
           "max_swell_h_m": 1.1,
+          "avg_swell_p_s": 6,
+          "avg_wind_wave_m": 1.2,
+          "avg_wind_spd_ms": 4.4
+        },
+        {
+          "date": "2026-04-24",
+          "weekday": "週五",
+          "avg_swell_h_m": 1.1,
+          "max_swell_h_m": 1.5,
+          "avg_swell_p_s": 5,
+          "avg_wind_wave_m": 0.8,
+          "avg_wind_spd_ms": 4.1
+        },
+        {
+          "date": "2026-04-25",
+          "weekday": "週六",
+          "avg_swell_h_m": 1.1,
+          "max_swell_h_m": 1.4,
           "avg_swell_p_s": 5,
           "avg_wind_wave_m": 0.4,
-          "avg_wind_spd_ms": 2.5
+          "avg_wind_spd_ms": 1.7
         }
       ]
     },
@@ -255,117 +255,117 @@
         "台東",
         "東河"
       ],
-      "overall_summary": "東北季風漸退，湧浪偏小，週三短暫增強，整週浪況普通偏弱",
-      "best_day": "週三(04/08)",
-      "worst_day": "週五(04/10)",
-      "highlight": "春季過渡期，東北季風減弱，週末週期拉長至8s，南部湧浪尚未成形",
+      "overall_summary": "週初湧浪穩定週期佳，週中後期湧浪衰減週期縮短，浪況漸弱。",
+      "best_day": "週日(04/19)",
+      "worst_day": "週六(04/25)",
+      "highlight": "春季過渡期東北季風漸弱，週五風浪增強需留意，把握週初長週期湧浪。",
       "daily_ratings": [
         {
-          "date": "2026-04-06",
-          "weekday": "週一",
-          "rating": 2,
-          "note": "小浪平穩適合初學"
-        },
-        {
-          "date": "2026-04-07",
-          "weekday": "週二",
-          "rating": 2,
-          "note": "微風浪稍增"
-        },
-        {
-          "date": "2026-04-08",
-          "weekday": "週三",
-          "rating": 3,
-          "note": "浪高增至1.4m"
-        },
-        {
-          "date": "2026-04-09",
-          "weekday": "週四",
-          "rating": 3,
-          "note": "週期7s浪形較整"
-        },
-        {
-          "date": "2026-04-10",
-          "weekday": "週五",
-          "rating": 2,
-          "note": "浪高回落偏弱"
-        },
-        {
-          "date": "2026-04-11",
-          "weekday": "週六",
-          "rating": 2,
-          "note": "週期8s但浪小"
-        },
-        {
-          "date": "2026-04-12",
+          "date": "2026-04-19",
           "weekday": "週日",
+          "rating": 4,
+          "note": "長週期湧浪佳"
+        },
+        {
+          "date": "2026-04-20",
+          "weekday": "週一",
+          "rating": 4,
+          "note": "湧浪穩定風小"
+        },
+        {
+          "date": "2026-04-21",
+          "weekday": "週二",
+          "rating": 3,
+          "note": "浪高略降尚可"
+        },
+        {
+          "date": "2026-04-22",
+          "weekday": "週三",
           "rating": 2,
-          "note": "浪況持平偏弱"
+          "note": "浪小週期短"
+        },
+        {
+          "date": "2026-04-23",
+          "weekday": "週四",
+          "rating": 2,
+          "note": "週期短力道弱"
+        },
+        {
+          "date": "2026-04-24",
+          "weekday": "週五",
+          "rating": 1,
+          "note": "風浪增強雜亂"
+        },
+        {
+          "date": "2026-04-25",
+          "weekday": "週六",
+          "rating": 1,
+          "note": "浪小力道不足"
         }
       ],
       "raw_data": [
         {
-          "date": "2026-04-06",
-          "weekday": "週一",
-          "avg_swell_h_m": 0.9,
-          "max_swell_h_m": 1.3,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0,
-          "avg_wind_spd_ms": 1.1
-        },
-        {
-          "date": "2026-04-07",
-          "weekday": "週二",
-          "avg_swell_h_m": 0.9,
-          "max_swell_h_m": 1.3,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.4,
-          "avg_wind_spd_ms": 1.6
-        },
-        {
-          "date": "2026-04-08",
-          "weekday": "週三",
-          "avg_swell_h_m": 1.4,
+          "date": "2026-04-19",
+          "weekday": "週日",
+          "avg_swell_h_m": 1.5,
           "max_swell_h_m": 1.6,
-          "avg_swell_p_s": 6,
-          "avg_wind_wave_m": 0.1,
-          "avg_wind_spd_ms": 1.2
+          "avg_swell_p_s": 11,
+          "avg_wind_wave_m": 0.2,
+          "avg_wind_spd_ms": 1.5
         },
         {
-          "date": "2026-04-09",
-          "weekday": "週四",
-          "avg_swell_h_m": 1.1,
-          "max_swell_h_m": 1.4,
-          "avg_swell_p_s": 7,
+          "date": "2026-04-20",
+          "weekday": "週一",
+          "avg_swell_h_m": 1.5,
+          "max_swell_h_m": 1.6,
+          "avg_swell_p_s": 10,
           "avg_wind_wave_m": 0,
           "avg_wind_spd_ms": 1.5
         },
         {
-          "date": "2026-04-10",
+          "date": "2026-04-21",
+          "weekday": "週二",
+          "avg_swell_h_m": 1.1,
+          "max_swell_h_m": 1.3,
+          "avg_swell_p_s": 9,
+          "avg_wind_wave_m": 0,
+          "avg_wind_spd_ms": 1.5
+        },
+        {
+          "date": "2026-04-22",
+          "weekday": "週三",
+          "avg_swell_h_m": 0.9,
+          "max_swell_h_m": 1,
+          "avg_swell_p_s": 8,
+          "avg_wind_wave_m": 0.1,
+          "avg_wind_spd_ms": 1.8
+        },
+        {
+          "date": "2026-04-23",
+          "weekday": "週四",
+          "avg_swell_h_m": 1.1,
+          "max_swell_h_m": 1.2,
+          "avg_swell_p_s": 5,
+          "avg_wind_wave_m": 0.1,
+          "avg_wind_spd_ms": 1.4
+        },
+        {
+          "date": "2026-04-24",
           "weekday": "週五",
           "avg_swell_h_m": 0.8,
-          "max_swell_h_m": 0.9,
-          "avg_swell_p_s": 7,
-          "avg_wind_wave_m": 0.1,
-          "avg_wind_spd_ms": 1.1
+          "max_swell_h_m": 1.2,
+          "avg_swell_p_s": 5,
+          "avg_wind_wave_m": 0.6,
+          "avg_wind_spd_ms": 2.3
         },
         {
-          "date": "2026-04-11",
+          "date": "2026-04-25",
           "weekday": "週六",
-          "avg_swell_h_m": 0.8,
-          "max_swell_h_m": 0.8,
-          "avg_swell_p_s": 8,
-          "avg_wind_wave_m": 0,
-          "avg_wind_spd_ms": 1.3
-        },
-        {
-          "date": "2026-04-12",
-          "weekday": "週日",
-          "avg_swell_h_m": 0.8,
-          "max_swell_h_m": 1.1,
-          "avg_swell_p_s": 7,
-          "avg_wind_wave_m": 0,
-          "avg_wind_spd_ms": 1.2
+          "avg_swell_h_m": 0.7,
+          "max_swell_h_m": 1,
+          "avg_swell_p_s": 6,
+          "avg_wind_wave_m": 0.1,
+          "avg_wind_spd_ms": 0.9
         }
       ]
     },
@@ -374,117 +374,117 @@
       "spots": [
         "魚光島"
       ],
-      "overall_summary": "整週湧浪偏小約0.6–1m、週期短僅5s，浪質一般，週二略佳，整體適合初學者練習",
-      "best_day": "週二(04/07)",
-      "worst_day": "週四(04/09)",
-      "highlight": "春季過渡期東北季風漸退，湧浪能量偏弱，注意西南季風醞釀，留意南部湧浪動態",
+      "overall_summary": "整週浪況偏弱，週期短風浪雜，週五湧浪略起有機會。",
+      "best_day": "週五(04/24)",
+      "worst_day": "週一(04/20)",
+      "highlight": "春季東北季風漸弱，西海岸整體缺乏湧浪動能，留意西南風醞釀。",
       "daily_ratings": [
         {
-          "date": "2026-04-06",
+          "date": "2026-04-19",
+          "weekday": "週日",
+          "rating": 1,
+          "note": "浪小風雜"
+        },
+        {
+          "date": "2026-04-20",
           "weekday": "週一",
-          "rating": 2,
-          "note": "風浪干擾略多"
+          "rating": 1,
+          "note": "浪平無浪"
         },
         {
-          "date": "2026-04-07",
+          "date": "2026-04-21",
           "weekday": "週二",
-          "rating": 3,
-          "note": "浪最高風輕"
+          "rating": 1,
+          "note": "浪平無浪"
         },
         {
-          "date": "2026-04-08",
+          "date": "2026-04-22",
           "weekday": "週三",
-          "rating": 2,
-          "note": "浪面尚可"
+          "rating": 1,
+          "note": "短週期風浪"
         },
         {
-          "date": "2026-04-09",
+          "date": "2026-04-23",
           "weekday": "週四",
-          "rating": 1,
-          "note": "浪小偏弱"
+          "rating": 2,
+          "note": "湧浪微起"
         },
         {
-          "date": "2026-04-10",
+          "date": "2026-04-24",
           "weekday": "週五",
-          "rating": 1,
-          "note": "浪小偏弱"
+          "rating": 2,
+          "note": "湧浪略佳"
         },
         {
-          "date": "2026-04-11",
+          "date": "2026-04-25",
           "weekday": "週六",
           "rating": 2,
-          "note": "風輕浪小"
-        },
-        {
-          "date": "2026-04-12",
-          "weekday": "週日",
-          "rating": 2,
-          "note": "風輕浪小"
+          "note": "湧浪持續"
         }
       ],
       "raw_data": [
         {
-          "date": "2026-04-06",
+          "date": "2026-04-19",
+          "weekday": "週日",
+          "avg_swell_h_m": 0.3,
+          "max_swell_h_m": 0.4,
+          "avg_swell_p_s": 4,
+          "avg_wind_wave_m": 0.2,
+          "avg_wind_spd_ms": 5.5
+        },
+        {
+          "date": "2026-04-20",
           "weekday": "週一",
-          "avg_swell_h_m": 0.7,
-          "max_swell_h_m": 1,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.4,
-          "avg_wind_spd_ms": 6.2
+          "avg_swell_h_m": 0.2,
+          "max_swell_h_m": 0.3,
+          "avg_swell_p_s": 7,
+          "avg_wind_wave_m": 0,
+          "avg_wind_spd_ms": 2.1
         },
         {
-          "date": "2026-04-07",
+          "date": "2026-04-21",
           "weekday": "週二",
-          "avg_swell_h_m": 1,
-          "max_swell_h_m": 1.1,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.1,
-          "avg_wind_spd_ms": 2.7
+          "avg_swell_h_m": 0.2,
+          "max_swell_h_m": 0.4,
+          "avg_swell_p_s": 6,
+          "avg_wind_wave_m": 0,
+          "avg_wind_spd_ms": 2.8
         },
         {
-          "date": "2026-04-08",
+          "date": "2026-04-22",
           "weekday": "週三",
-          "avg_swell_h_m": 0.8,
-          "max_swell_h_m": 1,
+          "avg_swell_h_m": 0.4,
+          "max_swell_h_m": 0.7,
+          "avg_swell_p_s": 4,
+          "avg_wind_wave_m": 0.4,
+          "avg_wind_spd_ms": 4
+        },
+        {
+          "date": "2026-04-23",
+          "weekday": "週四",
+          "avg_swell_h_m": 0.5,
+          "max_swell_h_m": 0.6,
+          "avg_swell_p_s": 4,
+          "avg_wind_wave_m": 0.1,
+          "avg_wind_spd_ms": 3.6
+        },
+        {
+          "date": "2026-04-24",
+          "weekday": "週五",
+          "avg_swell_h_m": 0.7,
+          "max_swell_h_m": 0.7,
           "avg_swell_p_s": 5,
           "avg_wind_wave_m": 0,
-          "avg_wind_spd_ms": 3.6
+          "avg_wind_spd_ms": 5.8
         },
         {
-          "date": "2026-04-09",
-          "weekday": "週四",
-          "avg_swell_h_m": 0.6,
-          "max_swell_h_m": 0.7,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.2,
-          "avg_wind_spd_ms": 2.5
-        },
-        {
-          "date": "2026-04-10",
-          "weekday": "週五",
-          "avg_swell_h_m": 0.6,
-          "max_swell_h_m": 0.7,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.1,
-          "avg_wind_spd_ms": 3.6
-        },
-        {
-          "date": "2026-04-11",
+          "date": "2026-04-25",
           "weekday": "週六",
-          "avg_swell_h_m": 0.7,
-          "max_swell_h_m": 0.7,
+          "avg_swell_h_m": 0.5,
+          "max_swell_h_m": 0.6,
           "avg_swell_p_s": 5,
           "avg_wind_wave_m": 0.1,
-          "avg_wind_spd_ms": 3.5
-        },
-        {
-          "date": "2026-04-12",
-          "weekday": "週日",
-          "avg_swell_h_m": 0.7,
-          "max_swell_h_m": 0.7,
-          "avg_swell_p_s": 5,
-          "avg_wind_wave_m": 0.1,
-          "avg_wind_spd_ms": 3.3
+          "avg_wind_spd_ms": 4.6
         }
       ]
     }

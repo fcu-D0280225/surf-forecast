@@ -1,9 +1,23 @@
 {
   "spot": "jialeshui",
   "name": "佳樂水",
-  "generated_at": "2026-04-16T18:17:15.400Z",
-  "date": "2026-04-18",
-  "stale": true,
-  "stale_since": "2026-04-14T18:08:04.505Z",
-  "stale_reason": "claude_error"
+  "generated_at": "2026-04-19T03:13:03.213Z",
+  "date": "2026-04-20",
+  "stale": false,
+  "stale_since": null,
+  "swell_height_m": 2,
+  "swell_period_s": 10,
+  "swell_direction_deg": 88,
+  "wind_wave_height_m": 0.2,
+  "wind_speed_ms": 2.2,
+  "wind_direction_deg": 50,
+  "best_window_start": "04:00",
+  "best_window_end": "09:00",
+  "swell_ratio": 0.9,
+  "wind_model_spread_ms": 0.5,
+  "confidence": "high",
+  "tides": null,
+  "rating": 4,
+  "summary": "2米東湧乾淨，清晨無風好浪",
+  "notes": "春季東北季風減弱，今日東湧仍強勁且風浪低、湧浪純淨度高，礁盤浪型佳。建議把握清晨微風時段，注意礁盤地形與潮位變化，中高級"
 }

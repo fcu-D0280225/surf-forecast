@@ -1,9 +1,23 @@
 {
   "spot": "shi-men-dong",
   "name": "石門洞",
-  "generated_at": "2026-04-16T18:17:15.399Z",
-  "date": "2026-04-18",
-  "stale": true,
-  "stale_since": "2026-04-14T18:08:04.503Z",
-  "stale_reason": "claude_error"
+  "generated_at": "2026-04-19T03:12:44.857Z",
+  "date": "2026-04-20",
+  "stale": false,
+  "stale_since": null,
+  "swell_height_m": 0.8,
+  "swell_period_s": 8,
+  "swell_direction_deg": 66,
+  "wind_wave_height_m": 0.1,
+  "wind_speed_ms": 1.7,
+  "wind_direction_deg": 114,
+  "best_window_start": "04:00",
+  "best_window_end": "08:00",
+  "swell_ratio": 0.94,
+  "wind_model_spread_ms": 0.4,
+  "confidence": "high",
+  "tides": null,
+  "rating": 4,
+  "summary": "晨間湧浪乾淨，適合中進階者出浪",
+  "notes": "春季東北季風漸弱，今日風浪極低、湧浪純淨比高達94%，礁石底地形需注意退潮水位；潮汐資料未取得，建議出發前確認當地潮汐表"
 }
