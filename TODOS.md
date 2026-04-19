@@ -59,3 +59,21 @@
 **What:** `public/data/weekly-report.json` 的 git 歷史只有 `8824079 修正版面`（2026-04-06），之後排程每週四 18:00 CST 應跑，但 04-09、04-16 都沒產出 commit。
 **Why:** 同上 ENG-006 根因。此次 04-19 手動補跑已涵蓋 04-19~04-25 區間。
 **Depends on:** ENG-004 / ENG-006。
+
+### TODO-ENG-008: 移除日報字卡 UI + 決定後端去留
+**What:** 使用者要求移除「瀏覽所有浪點」日報字卡，只保留週報字卡，當天浪況改為讓使用者在 chat 問。
+
+**關鍵約束：** `server.js:283-300` 的 `/api/chat` 會遍歷 `spots.json`，對每個浪點讀 `public/data/{slug}.json`（rating/summary/湧浪/風速/潮汐）塞進 prompt。砍掉每日 cron 會讓 chat 失去差異化資料。
+
+**三個選項（決策未定）：**
+- **A. 全部移除**：砍 `forecast.yml` + `scripts/fetch-and-generate.js` + `public/data/*.json`（每日檔）。chat 降級成通用助理，失去差異化。
+- **B. On-demand refactor**：砍排程與預生成，chat 在問題來時即時抓 Open-Meteo marine + 呼 Claude。資料最新，但每次問要 10–30s，開放式「哪個最好？」需並行抓 12 個（又會撞 ENG-005 並行瓶頸）。
+- **C. 只改前端**：後端照跑，只刪前端日報字卡相關 HTML/JS。資源浪費但最安全，chat 照常用。
+
+**前端刪除範圍（三個選項都適用）：**
+- `public/index.html`：`<section class="browse-section">`、`#spot-selector` 面板、`#spot-toggle-btn`
+- `public/app.js`：`loadForecasts` / `renderCards` / `buildCard` / `toggleCard` / `toggleBrowse` / `buildSpotSelector` / `toggleSpotSelector` / `onSpotToggle` / `selectAll` / `selectNone` / `renderAccuracy` / `getFeedback` / `LS_SELECTED` / `LS_FEEDBACK` / `addSeasonalSpot` button；保留 `allSpots`（chat 的 `hasLocationContext` 要用）
+- 考慮保留或調整：header 的 `forecast-date`、refresh 按鈕、seasonal banner 的加入按鈕
+
+**建議：** 若要作，傾向 B（符合「當天浪況用問的」精神），但需搭配 ENG-005 的並行限制一起解。
+**Status:** 2026-04-19 討論後暫緩，等下次 session 決定方向再動。
