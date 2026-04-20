@@ -1,6 +1,7 @@
 /**
  * web-server.js — Surf Forecast Web UI（含登入認證）
  */
+import 'dotenv/config';
 import express from 'express';
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import path from 'path';

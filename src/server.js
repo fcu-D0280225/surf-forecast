@@ -8,6 +8,7 @@
  *
  * 靜態資源由 public/ 目錄提供。
  */
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
