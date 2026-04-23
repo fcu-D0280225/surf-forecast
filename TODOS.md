@@ -25,40 +25,29 @@
 **Context:** MVP 接受 localStorage 的限制（失去回饋不影響核心功能）。升級至 Cloudflare KV 可同時實現跨裝置同步。
 **Depends on:** 先確認 MVP 使用量值得投資再升級。
 
-### TODO-ENG-003: 設定每日 cron 自動更新預報資料
-**What:** `scripts/fetch-and-generate.js` 目前需要手動執行，沒有自動排程。
-**Why:** 如果 `public/data/*.json` 超過 24 小時沒更新，app 的 Claude 回答就退化回「沒有資料的亂猜」，差異化完全消失。
-**Action:** 設定 GitHub Actions workflow，每天台灣時間凌晨 2:00（UTC 18:00）執行 `node scripts/fetch-and-generate.js`，並在失敗時發 email/通知。
-**Depends on:** `ANTHROPIC_API_KEY` secret 寫入 GitHub repo settings。
+### ~~TODO-ENG-003: 設定每日 cron 自動更新預報資料~~ ✅ 已完成（改用 Mac launchd）
+**解法：** 2026-04-XX nightly 改用 Mac launchd plist (`com.surf-forecast.daily`) + `mac/surf-forecast.sh`，呼叫 `node scripts/fetch-and-generate.js`，log 寫 `/tmp/surf-forecast-cron.log`。繞過 GH Actions。
 
 ## From /investigate session (2026-04-19)
 
-背景：發現每週浪況預報停在 2026-04-06，每日預報停在 2026-04-17。手動跑完兩支腳本後推了 `80146ce chore(data): update surf forecast data 2026-04-20 + weekly report 2026-W17`。根本原因尚未修復。
+背景：發現每週浪況預報停在 2026-04-06，每日預報停在 2026-04-17。手動跑完兩支腳本後推了 `80146ce chore(data): update surf forecast data 2026-04-20 + weekly report 2026-W17`。
 
-### TODO-ENG-004: 查 GH Actions 實際失敗原因
-**What:** 先 `gh auth login`，拉 `forecast.yml` 與 `weekly-forecast.yml` 近期執行紀錄，確認是沒跑、跑了失敗、還是跑了但 push 被拒。
-**Why:** 所有 forecast commit 作者都是 `jacksonlin` 本人（非 `github-actions[bot]`），強烈暗示 workflow 從未成功推過。修之前需要確定真正的失敗點。
-**Depends on:** `gh auth` 設定。
+### ~~TODO-ENG-004: 查 GH Actions 實際失敗原因~~ ❌ 作廢 2026-04-24
+**作廢原因：** ENG-003 改用 Mac launchd 本機執行後，GH Actions workflow 已不再是 critical path，無需繼續追查根因。
 
-### TODO-ENG-005: 修 Claude CLI 並行瓶頸
+### TODO-ENG-005: 修 Claude CLI 並行瓶頸（本機 launchd 仍有效）
 **What:** `fetch-and-generate.js:141` 用 `Promise.allSettled(spots.map(processSpot))` 並行呼叫 12 個 `claude --print` 子進程。實測並行時全部卡在 60s timeout 被 SIGTERM（code 143）。單呼只要 15s。
-**Why:** Anthropic 帳號的並行請求配額被打爆。這次本機跑時改成序列才救回來。即使 Actions 能跑起來也會碰到相同問題。
+**Why:** Anthropic 帳號的並行請求配額被打爆。即使本機 launchd 執行也會碰到相同問題，序列跑需要 ~3 分鐘。
 **Options:**
 - A) 加 p-limit 之類的 concurrency limit（例如 3）
 - B) 改成完全序列（weekly-report.js 本來就是序列）
 - Trade-off：A 快 (~1 分鐘)、B 穩 (~3 分鐘)
 
-### TODO-ENG-006: 釐清 Actions runner 上 `claude` CLI 的認證
-**What:** `src/forecast-utils.js:306` 註解寫「reuses Claude Code CLI auth, no API key needed」，但 workflow 只設 `ANTHROPIC_API_KEY`，也沒 `npm install -g @anthropic-ai/claude-code`。runner 上可能根本沒 `claude` 指令或沒登入態。
-**Why:** 這是 Actions 從沒成功的最可能原因。
-**Options:**
-- A) 改用 `@anthropic-ai/sdk` 直呼 API（注意：`20dab00 revert: 移除 Anthropic SDK，恢復純 Claude Code CLI` 歷史上做過又回退，要先查當時原因）
-- B) 保留 CLI 但 workflow 加安裝 + 認證步驟
+### ~~TODO-ENG-006: 釐清 Actions runner 上 `claude` CLI 的認證~~ ❌ 作廢 2026-04-24
+**作廢原因：** 同 ENG-004，ENG-003 改 launchd 後不再需要 Actions runner 認證。
 
-### TODO-ENG-007: weekly-forecast.yml 從沒成功
-**What:** `public/data/weekly-report.json` 的 git 歷史只有 `8824079 修正版面`（2026-04-06），之後排程每週四 18:00 CST 應跑，但 04-09、04-16 都沒產出 commit。
-**Why:** 同上 ENG-006 根因。此次 04-19 手動補跑已涵蓋 04-19~04-25 區間。
-**Depends on:** ENG-004 / ENG-006。
+### ~~TODO-ENG-007: weekly-forecast.yml 從沒成功~~ ❌ 作廢 2026-04-24
+**作廢原因：** 同 ENG-004/006。若要恢復 weekly 自動化，在 Mac launchd 加一條每週四排程即可，不必修 GH Actions。
 
 ### TODO-ENG-008: 移除日報字卡 UI + 決定後端去留
 **What:** 使用者要求移除「瀏覽所有浪點」日報字卡，只保留週報字卡，當天浪況改為讓使用者在 chat 問。
