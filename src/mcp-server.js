@@ -1,11 +1,20 @@
 /**
  * mcp-server.js — Surf Forecast MCP Server v2
  * 新增：record_surf_log 自動抓客觀數據、predict_surf_day 預測工具
+ *       fetch_spot_forecast_data、save_spot_forecast（供 forecast-agent 使用）
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+import { writeFileSync, existsSync, readFileSync, mkdirSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { geocode, fetchConditionsForDate, fetchSurfForecast, fetchWindForecast } from './surf-utils.js';
+import { fetchMarineData, fetchTides, getSeasonalContext } from './forecast-utils.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DATA_DIR  = path.join(__dirname, '..', 'public', 'data');
+mkdirSync(DATA_DIR, { recursive: true });
 
 const RAG_DB_PATH = `mysql://${process.env.MYSQL_HOST || 'localhost'}/${process.env.MYSQL_DATABASE || 'surf_forecast'}`;
 
@@ -201,6 +210,90 @@ server.tool(
           similar_historical_days: similarDays,
           note: '請根據 forecast_conditions 與 similar_historical_days 的 rating 分布，給出預測結論與衝浪建議。',
         }, null, 2),
+      }],
+    };
+  },
+);
+
+// ── Forecast Agent Tools ──────────────────────────────────────────────────────
+
+server.tool(
+  'fetch_spot_forecast_data',
+  '取得指定浪點的海象預報與潮汐數據（供 forecast-agent 評估使用）',
+  {
+    lat:          z.number().describe('緯度'),
+    lon:          z.number().describe('經度'),
+    date:         z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe('預報日期 YYYY-MM-DD'),
+    tide_station: z.string().optional().describe('潮汐站名稱（可選）'),
+    spot_name:    z.string().optional().describe('浪點名稱（用於 log）'),
+  },
+  async ({ lat, lon, date, tide_station, spot_name }) => {
+    const label = spot_name ?? `${lat},${lon}`;
+
+    const [weatherData, tides] = await Promise.all([
+      fetchMarineData(lat, lon, date),
+      tide_station
+        ? fetchTides(tide_station, date).catch(() => null)
+        : Promise.resolve(null),
+    ]);
+
+    const seasonalCtx = getSeasonalContext(date);
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({ spot: label, ...weatherData, tides, seasonal_context: seasonalCtx }, null, 2),
+      }],
+    };
+  },
+);
+
+server.tool(
+  'save_spot_forecast',
+  '將 forecast-agent 生成的預報結果寫入 public/data/{slug}.json',
+  {
+    slug:        z.string().describe('浪點 slug，例如 kenting-nanwan'),
+    name:        z.string().describe('浪點中文名稱'),
+    date:        z.string().describe('預報日期 YYYY-MM-DD'),
+    rating:      z.number().int().min(1).max(5).describe('衝浪評級 1–5'),
+    summary:     z.string().max(20).describe('最多 20 字的衝浪建議'),
+    notes:       z.string().nullable().optional().describe('注意事項'),
+    weather_data: z.string().describe('fetch_spot_forecast_data 回傳的原始 JSON 字串'),
+  },
+  async ({ slug, name, date, rating, summary, notes, weather_data }) => {
+    const outFile   = path.join(DATA_DIR, `${slug}.json`);
+    const parsed    = JSON.parse(weather_data);
+    const generatedAt = new Date().toISOString();
+
+    const output = {
+      spot:                slug,
+      name,
+      generated_at:        generatedAt,
+      date,
+      stale:               false,
+      stale_since:         null,
+      swell_height_m:      parsed.swell_height_m      ?? null,
+      swell_period_s:      parsed.swell_period_s      ?? null,
+      swell_direction_deg: parsed.swell_direction_deg ?? null,
+      wind_wave_height_m:  parsed.wind_wave_height_m  ?? null,
+      wind_speed_ms:       parsed.wind_speed_ms        ?? null,
+      wind_direction_deg:  parsed.wind_direction_deg   ?? null,
+      best_window_start:   parsed.best_window_start    ?? null,
+      best_window_end:     parsed.best_window_end      ?? null,
+      swell_ratio:         parsed.swell_ratio          ?? null,
+      wind_model_spread_ms: parsed.wind_model_spread_ms ?? null,
+      confidence:          parsed.confidence           ?? null,
+      tides:               parsed.tides               ?? null,
+      rating,
+      summary,
+      notes: notes ?? null,
+    };
+
+    writeFileSync(outFile, JSON.stringify(output, null, 2));
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({ ok: true, file: outFile, rating, summary }, null, 2),
       }],
     };
   },

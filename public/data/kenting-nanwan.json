@@ -1,23 +1,9 @@
 {
   "spot": "kenting-nanwan",
   "name": "墾丁南灣",
-  "generated_at": "2026-04-19T03:10:27.488Z",
-  "date": "2026-04-20",
-  "stale": false,
-  "stale_since": null,
-  "swell_height_m": 1.3,
-  "swell_period_s": 11,
-  "swell_direction_deg": 93,
-  "wind_wave_height_m": 0.2,
-  "wind_speed_ms": 2.3,
-  "wind_direction_deg": 51,
-  "best_window_start": "04:00",
-  "best_window_end": "08:00",
-  "swell_ratio": 0.88,
-  "wind_model_spread_ms": 0.8,
-  "confidence": "high",
-  "tides": null,
-  "rating": 4,
-  "summary": "優質晨浪，乾淨湧浪適合各級衝浪",
-  "notes": "春季過渡期，西南季風漸起，未來數週南灣湧浪可望漸增。潮汐資料未取得，建議出發前確認當日潮汐，避開滿潮時段。"
+  "generated_at": "2026-04-22T18:00:06.012Z",
+  "date": "2026-04-24",
+  "stale": true,
+  "stale_since": "2026-04-19T18:07:15.684Z",
+  "stale_reason": "open_meteo_error"
 }

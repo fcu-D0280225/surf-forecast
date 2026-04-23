@@ -1,23 +1,9 @@
 {
   "spot": "chenggong",
   "name": "成功",
-  "generated_at": "2026-04-19T03:11:49.421Z",
-  "date": "2026-04-20",
-  "stale": false,
-  "stale_since": null,
-  "swell_height_m": 1.9,
-  "swell_period_s": 10,
-  "swell_direction_deg": 92,
-  "wind_wave_height_m": 0,
-  "wind_speed_ms": 0.6,
-  "wind_direction_deg": 252,
-  "best_window_start": "04:00",
-  "best_window_end": "08:00",
-  "swell_ratio": 0.99,
-  "wind_model_spread_ms": 0.3,
-  "confidence": "high",
-  "tides": null,
-  "rating": 4,
-  "summary": "東湧乾淨週期佳，把握清晨無風窗口",
-  "notes": "春季過渡期，東北季風漸弱，今日湧浪方向正東、週期10秒，浪面極乾淨，適合中高級浪人。注意潮汐資料未取得，建議自行確認乾潮"
+  "generated_at": "2026-04-22T18:00:06.052Z",
+  "date": "2026-04-24",
+  "stale": true,
+  "stale_since": "2026-04-19T18:07:15.717Z",
+  "stale_reason": "open_meteo_error"
 }
