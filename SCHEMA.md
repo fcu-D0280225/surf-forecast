@@ -43,27 +43,30 @@
 ### 3. reports（`src/db.js:44-50`）
 `id / content TEXT / created_at`
 
-### 4. surf_log（`src/db.js:52-76`）
-RAG + 海象資料合一：
-| 欄位 | 型別 |
-|------|------|
-| id | INT PK |
-| date_iso | VARCHAR(10) `YYYY-MM-DD` |
-| spot | VARCHAR(255) |
-| rating | VARCHAR(16) |
-| notes | TEXT |
-| content | TEXT（RAG chunk） |
-| embedding | LONGBLOB（MiniLM-L6-v2 384 維 Float32Array） |
-| wave_height_m / wave_period_s | DOUBLE |
-| wind_speed_kmh / wind_direction_deg / wind_direction_text | DOUBLE/VARCHAR |
-| swell_height_m / swell_period_s | DOUBLE |
-| wave_direction_deg / wave_direction_text | DOUBLE/VARCHAR |
-| water_temp_c | DOUBLE |
-| weather_text | VARCHAR(64) |
-| tide | VARCHAR(128) |
-| created_at | DATETIME |
+### 4. surf_log（`src/db.js:52-77`）
+RAG + 海象資料合一。**主搜尋路徑是 `findSimilarByConditions`**（數值欄位加權歐氏距離 + 風向圓周距離，`src/rag/store.js`）；`embedding` 欄位目前 nullable，保留給未來可選的文字向量 rerank。
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| id | INT PK | |
+| date_iso | VARCHAR(10) | `YYYY-MM-DD` |
+| spot | VARCHAR(255) | |
+| rating | VARCHAR(16) | 好 / 普通 / 不好 |
+| notes | TEXT | 使用者備註 |
+| content | TEXT | `buildChunk` 產生的人類可讀摘要（含浪高、週期、風向等），未來文字 rerank 用 |
+| embedding | LONGBLOB **NULL** | 選用 MiniLM-L6-v2 384 維向量；`recordSurfLog({withEmbedding:true})` 才寫入，否則 NULL |
+| wave_height_m / wave_period_s | DOUBLE | 搜尋主要特徵 |
+| swell_height_m / swell_period_s | DOUBLE | |
+| wind_speed_kmh | DOUBLE | |
+| wind_direction_deg / wind_direction_text | DOUBLE/VARCHAR | 搜尋以圓周距離比對 |
+| wave_direction_deg / wave_direction_text | DOUBLE/VARCHAR | 同上 |
+| water_temp_c | DOUBLE | |
+| weather_text | VARCHAR(64) | |
+| tide | VARCHAR(128) | |
+| created_at | DATETIME | |
 
 索引：`idx_surf_log_date` on `date_iso`
+
+> **歷史註記**：embedding 原本是 NOT NULL，但 `@xenova/transformers` 從未正式裝進 package.json，導致寫入路徑全部失敗。`src/db.js` 裡的 `ALTER TABLE surf_log MODIFY embedding LONGBLOB NULL` 會在每次 `initDb()` 跑一次（idempotent）。
 
 ### 靜態資料檔
 

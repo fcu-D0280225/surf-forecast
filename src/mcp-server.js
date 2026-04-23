@@ -63,26 +63,6 @@ function formatForecast(marine, wind, locationName) {
   };
 }
 
-/** 將條件物件轉成搜尋 query 字串（讓 embedding 找出類似歷史紀錄） */
-function conditionsToQuery(conditions, spot = '') {
-  const {
-    wave_height_m, swell_height_m, wave_period_s,
-    wind_speed_kmh, wind_direction_text,
-    wave_direction_text, water_temp_c, weather_text,
-  } = conditions;
-  return [
-    spot ? `地點:${spot}` : '',
-    wave_height_m     != null ? `浪高:${wave_height_m.toFixed(1)}m`      : '',
-    swell_height_m    != null ? `湧浪:${swell_height_m.toFixed(1)}m`     : '',
-    wave_period_s     != null ? `週期:${Math.round(wave_period_s)}s`      : '',
-    wave_direction_text       ? `浪向:${wave_direction_text}`             : '',
-    wind_speed_kmh    != null ? `風速:${Math.round(wind_speed_kmh)}km/h` : '',
-    wind_direction_text       ? `風向:${wind_direction_text}`             : '',
-    water_temp_c      != null ? `水溫:${water_temp_c.toFixed(1)}°C`      : '',
-    weather_text              ? `天氣:${weather_text}`                    : '',
-  ].filter(Boolean).join(' ');
-}
-
 // ── MCP Tools ─────────────────────────────────────────────────────────────────
 
 server.tool(
@@ -172,13 +152,15 @@ server.tool(
 
 server.tool(
   'predict_surf_day',
-  '輸入未來日期與地點，根據預報條件在歷史紀錄中找相似天，預測浪況好壞與建議',
+  '輸入未來日期與地點，根據預報條件用數值加權距離在歷史紀錄中找相似天，預測浪況好壞與建議',
   {
-    date:     DATE_ISO.describe('預測日期，例：2026-04-05（最多 7 天內）'),
-    location: z.string().describe('地點名稱'),
+    date:            DATE_ISO.describe('預測日期，例：2026-04-05（最多 7 天內）'),
+    location:        z.string().describe('地點名稱'),
+    same_spot_only:  z.boolean().optional().describe('只比對同浪點（預設 true）'),
+    top_k:           z.number().int().min(1).max(20).optional().describe('回傳相似天數，預設 5'),
   },
-  async ({ date, location }) => {
-    const { searchSurfLogs } = await import('./rag/store.js');
+  async ({ date, location, same_spot_only = true, top_k = 5 }) => {
+    const { findSimilarByConditions } = await import('./rag/store.js');
     const geo = await geocode(location);
     const spotName = `${geo.name}（${geo.country ?? '台灣'}）`;
 
@@ -196,9 +178,11 @@ server.tool(
       };
     }
 
-    // 用預報條件建構搜尋 query，找歷史相似紀錄
-    const query = conditionsToQuery(forecastConditions, spotName);
-    const similarDays = await searchSurfLogs({ query, topK: 5 });
+    const similarDays = await findSimilarByConditions({
+      conditions: forecastConditions,
+      spot:       same_spot_only ? spotName : null,
+      topK:       top_k,
+    });
 
     return {
       content: [{
@@ -206,9 +190,9 @@ server.tool(
         text: JSON.stringify({
           predict_for: { date, location: spotName },
           forecast_conditions: forecastConditions,
-          rag_query_used: query,
+          search_mode: same_spot_only ? 'same_spot' : 'all_spots',
           similar_historical_days: similarDays,
-          note: '請根據 forecast_conditions 與 similar_historical_days 的 rating 分布，給出預測結論與衝浪建議。',
+          note: '請根據 forecast_conditions 與 similar_historical_days（distance 越小越像）的 rating 分布，給出預測結論與衝浪建議。',
         }, null, 2),
       }],
     };

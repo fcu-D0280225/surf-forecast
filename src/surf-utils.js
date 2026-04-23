@@ -14,7 +14,7 @@ export const TW_SPOTS = {
   '花蓮':   { latitude: 23.9833, longitude: 121.6000, name: '花蓮' },
   '成功':   { latitude: 23.0992, longitude: 121.3742, name: '成功, 台東' },
   '鹽寮':   { latitude: 24.0167, longitude: 121.6333, name: '鹽寮, 花蓮' },
-  '松柏港': { latitude: 23.6000, longitude: 119.9000, name: '松柏港' },
+  '松柏港': { latitude: 24.4255, longitude: 120.6126, name: '松柏漁港, 台中' },
 };
 
 export async function geocode(location) {

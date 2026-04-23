@@ -33,7 +33,12 @@ const targetDate = process.env.FORECAST_DATE || getTomorrowCST();
 console.log(`[cron] target date: ${targetDate}`);
 
 // ── 讀取浪點設定 ──────────────────────────────────────────────────────────────
-const spots = JSON.parse(readFileSync(SPOTS_FILE, 'utf8'));
+let spots = JSON.parse(readFileSync(SPOTS_FILE, 'utf8'));
+if (process.env.SPOT_SLUG) {
+  const filter = process.env.SPOT_SLUG.split(',').map(s => s.trim());
+  spots = spots.filter(s => filter.includes(s.slug));
+  console.log(`[cron] SPOT_SLUG filter → ${spots.length} spots: ${spots.map(s => s.slug).join(',')}`);
+}
 console.log(`[cron] processing ${spots.length} spots`);
 
 // ── 處理單一浪點 ──────────────────────────────────────────────────────────────

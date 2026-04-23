@@ -57,7 +57,7 @@ async function createSchema(conn) {
       rating               VARCHAR(16)  NOT NULL,
       notes                TEXT,
       content              TEXT NOT NULL,
-      embedding            LONGBLOB NOT NULL,
+      embedding            LONGBLOB NULL,
       created_at           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       wave_height_m        DOUBLE,
       wave_period_s        DOUBLE,
@@ -74,6 +74,8 @@ async function createSchema(conn) {
       INDEX idx_surf_log_date (date_iso)
     ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
   `);
+
+  await conn.query(`ALTER TABLE surf_log MODIFY embedding LONGBLOB NULL`);
 }
 
 export async function initDb() {
