@@ -1,9 +1,8 @@
 name: Daily Surf Forecast
 
 on:
-  schedule:
-    # 每天 10:00 UTC = 18:00 CST (Asia/Taipei)
-    - cron: '0 10 * * *'
+  # 排程已移到 VPS cron（/home/jacksonlin/repos/surf-forecast/scripts/cron-forecast.sh）
+  # 走 OAuth 訂閱額度而非 ANTHROPIC_API_KEY。本 workflow 僅留手動觸發作為後備。
   workflow_dispatch:
     inputs:
       forecast_date:
