@@ -60,7 +60,7 @@ export async function runForecastAgent(spot, date) {
       options: {
         systemPrompt: SYSTEM_PROMPT,
         mcpServers,
-        maxTurns:       6,
+        maxTurns:       15,
         permissionMode: 'bypassPermissions',
       },
     })) {
