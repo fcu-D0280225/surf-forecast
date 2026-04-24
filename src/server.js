@@ -23,6 +23,7 @@ import {
   setPoints, deductPoint, getUserInfo,
 } from './auth.js';
 import { initDb } from './db.js';
+import { traceGeneration } from './langfuse-client.js';
 
 const __dirname       = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR      = path.join(__dirname, '..', 'public');
@@ -203,7 +204,7 @@ function getForecastData(slug) {
 }
 
 // ── 呼叫 Claude CLI ────────────────────────────────────────────────────────────
-async function askClaude(prompt) {
+async function runClaudeCli(prompt) {
   const { stdout } = await execFileAsync('claude', [
     '--print', prompt,
     '--output-format', 'json',
@@ -215,6 +216,10 @@ async function askClaude(prompt) {
     throw new Error(`Claude CLI: ${envelope.subtype}`);
   }
   return envelope.result ?? '';
+}
+
+async function askClaude(prompt, name = 'askClaude', meta = {}) {
+  return traceGeneration(name, prompt, () => runClaudeCli(prompt), meta);
 }
 
 // ── 新浪點偵測與寫入 ────────────────────────────────────────────────────────────
@@ -255,7 +260,7 @@ async function detectNewSpots(text) {
 若沒有新地點，只輸出：[]`;
 
   try {
-    const raw = await askClaude(prompt);
+    const raw = await askClaude(prompt, 'detectNewSpots', { textLength: text.length });
     const match = raw.match(/\[[\s\S]*\]/);
     if (!match) return;
     const newSpots = JSON.parse(match[0]);
@@ -334,7 +339,11 @@ ${forecastContext}${ragContext}
 用戶問題：${question}`;
 
   try {
-    const answer = await askClaude(prompt);
+    const answer = await askClaude(prompt, 'chat', {
+      userId: req.session.user_id,
+      spotCount: spots.length,
+      reportCount: reports.length,
+    });
 
     // Match which spots Claude mentioned in the answer
     const mentionedSpots = spots

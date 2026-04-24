@@ -22,6 +22,7 @@
 - **後端**：Node.js + Express
 - **資料庫**：MySQL 8（向量 embedding 存於 `surf_log.embedding` LONGBLOB 欄位）
 - **AI**：Claude SDK（`@anthropic-ai/sdk`）+ Agent SDK
+- **觀測性**：Langfuse 雲端版（`langfuse`），`askClaude()` 每次呼叫皆送 generation trace；未填 key 時自動降級為 no-op
 - **部署**：Docker + Docker Compose
 - **預報資料**：GitHub Actions 每日 18:00（台灣時間）自動更新 JSON
 
