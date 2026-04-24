@@ -1,9 +1,23 @@
 {
   "spot": "northeast-cape",
   "name": "東北角",
-  "generated_at": "2026-04-22T18:00:06.047Z",
-  "date": "2026-04-24",
-  "stale": true,
-  "stale_since": "2026-04-19T18:07:15.713Z",
-  "stale_reason": "open_meteo_error"
+  "generated_at": "2026-04-24T18:14:52.659Z",
+  "date": "2026-04-26",
+  "stale": false,
+  "stale_since": null,
+  "swell_height_m": 0.9,
+  "swell_period_s": 6,
+  "swell_direction_deg": 36,
+  "wind_wave_height_m": 0,
+  "wind_speed_ms": 1.7,
+  "wind_direction_deg": 277,
+  "best_window_start": "04:00",
+  "best_window_end": "08:00",
+  "swell_ratio": 0.98,
+  "wind_model_spread_ms": 3.5,
+  "confidence": "med",
+  "tides": null,
+  "rating": 2,
+  "summary": "小浪微風，適合初學者練習",
+  "notes": "春季過渡期湧浪偏小週期僅6秒，清晨四至八點浪況較佳，風力輕微浪面乾淨"
 }

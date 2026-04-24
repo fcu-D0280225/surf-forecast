@@ -1,9 +1,23 @@
 {
   "spot": "jiao-qi",
   "name": "礁崎",
-  "generated_at": "2026-04-22T18:00:06.059Z",
-  "date": "2026-04-24",
-  "stale": true,
-  "stale_since": "2026-04-19T18:07:15.724Z",
-  "stale_reason": "open_meteo_error"
+  "generated_at": "2026-04-24T18:14:45.669Z",
+  "date": "2026-04-26",
+  "stale": false,
+  "stale_since": null,
+  "swell_height_m": 1,
+  "swell_period_s": 6,
+  "swell_direction_deg": 49,
+  "wind_wave_height_m": 0.1,
+  "wind_speed_ms": 0.9,
+  "wind_direction_deg": 289,
+  "best_window_start": "04:00",
+  "best_window_end": "08:00",
+  "swell_ratio": 0.93,
+  "wind_model_spread_ms": 0.5,
+  "confidence": "med",
+  "tides": null,
+  "rating": 3,
+  "summary": "小浪微風，適合初中級練習",
+  "notes": "週期僅6秒浪力偏弱，清晨4-8點離岸風窗口最佳，春季過渡期浪況不穩定"
 }

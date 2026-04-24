@@ -1,9 +1,23 @@
 {
   "spot": "jialeshui",
   "name": "佳樂水",
-  "generated_at": "2026-04-22T18:00:06.056Z",
-  "date": "2026-04-24",
-  "stale": true,
-  "stale_since": "2026-04-19T18:07:15.721Z",
-  "stale_reason": "open_meteo_error"
+  "generated_at": "2026-04-24T18:14:44.945Z",
+  "date": "2026-04-26",
+  "stale": false,
+  "stale_since": null,
+  "swell_height_m": 0.8,
+  "swell_period_s": 5,
+  "swell_direction_deg": 72,
+  "wind_wave_height_m": 0.2,
+  "wind_speed_ms": 2.8,
+  "wind_direction_deg": 17,
+  "best_window_start": "04:00",
+  "best_window_end": "08:00",
+  "swell_ratio": 0.83,
+  "wind_model_spread_ms": 0.2,
+  "confidence": "med",
+  "tides": null,
+  "rating": 2,
+  "summary": "小浪短週期，僅適合初學練習",
+  "notes": "春季過渡期湧浪不足，週期僅5秒力道偏弱，礁盤地形需留意水深與暗流"
 }
