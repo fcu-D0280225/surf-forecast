@@ -1,9 +1,8 @@
 name: Weekly Regional Surf Forecast
 
 on:
-  schedule:
-    # 每週四 10:00 UTC = 18:00 CST
-    - cron: '0 10 * * 4'
+  # 排程已移到 VPS cron（/home/jacksonlin/repos/surf-forecast/scripts/cron-weekly-report.sh）
+  # 走 OAuth 訂閱額度而非 ANTHROPIC_API_KEY。本 workflow 僅留手動觸發作為後備。
   workflow_dispatch:
 
 permissions:
